@@ -41,11 +41,11 @@ Here's an example project page to show why checkbox needs more states and why us
 1. Enable it in the community plugin tab.
 2. Setup the states you want in the states field. All states are concatenated with `;;`. The defaut setup is `;;- ;;- [ ] ;;- [/] ;;- [x] `. This setup represents for states:
 
-  1. paragraphs, nothing but pure text, one of the best features obsidian beats roam-like apps
-  2. list
-  3. checkbox in todo state
-  4. checkbox in a state for anything you want
-  5. checkbox in done state
+	  1. paragraphs, nothing but pure text, one of the best features obsidian beats roam-like apps
+	  2. list
+	  3. checkbox in todo state
+	  4. checkbox in a state for anything you want
+	  5. checkbox in done state
 
 3. Set the hotkey `Cmd`/`Ctrl` + `Enter` for this plugin "ToggleList: ToggleList->Next" you can search the command with the name. Since this hotkey is occupied by the official toggle, you need to delete the hotkey of "Toggle checkbox status" first.
 
