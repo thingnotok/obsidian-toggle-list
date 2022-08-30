@@ -2,19 +2,20 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 // Remember to rename these classes and interfaces!
 
-interface MyPluginSettings {
+interface ToggleListSettings {
 	states: Array<string>;
 	sorteds: Array<string>;
 	states_dict: object;
 	all_states: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: ToggleListSettings = {
 	states: [
 		'- ',
 		'- [ ] ',
 		'- [/] ',
-		'- [x] ',],
+		'- [x] ',
+		'',],
 	all_states: '',
 	states_dict: {},
 	sorteds: []
@@ -50,7 +51,7 @@ function getCurrentState(text: string, states: Array<string>): string {
 	return ''
 }
 
-function process_one_line(text: string, setting: MyPluginSettings) {
+function process_one_line(text: string, setting: ToggleListSettings) {
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_state = getCurrentState(noident_text, setting.sorteds);
@@ -66,7 +67,7 @@ function process_one_line(text: string, setting: MyPluginSettings) {
 	return { content: new_text, offset: next_state.length - cur_state.length }
 }
 
-function ToggleAction(editor: Editor, view: MarkdownView, setting: MyPluginSettings) {
+function ToggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSettings) {
 	var selection = editor.listSelections()[0];
 	var cursor = editor.getCursor();
 	var set_cur = false;
@@ -120,7 +121,7 @@ function ToggleAction(editor: Editor, view: MarkdownView, setting: MyPluginSetti
 	// editor.setCursor(cursor)
 }
 
-function updateSettingStates(setting: MyPluginSettings) {
+function updateSettingStates(setting: ToggleListSettings) {
 	console.log(setting.states);
 	const ori_states = setting.states
 	const state_dict = {}
@@ -132,8 +133,8 @@ function updateSettingStates(setting: MyPluginSettings) {
 	setting.sorteds = setting.sorteds.sort((a: string, b: string) => b.length - a.length);
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class ToggleList extends Plugin {
+	settings: ToggleListSettings;
 
 	async onload() {
 		await this.loadSettings();
@@ -154,7 +155,7 @@ export default class MyPlugin extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new ToggleListSettingTab(this.app, this));
 
 		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// Using this function will automatically remove the event listener when this plugin is disabled.
@@ -180,10 +181,10 @@ export default class MyPlugin extends Plugin {
 }
 
 
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+class ToggleListSettingTab extends PluginSettingTab {
+	plugin: ToggleList;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: ToggleList) {
 		super(app, plugin);
 		this.plugin = plugin;
 		this.plugin.settings.all_states = this.plugin.settings.states.join(';;');
