@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
 	"description": "This is a simple plugin to toggle the checklist states (paragraph/list/checklist/custom sytles...)",
-	"author": "Obsidian",
+	"author": "Lite C",
 	"authorUrl": "https://github.com/thingnotok/obsidian-simple-todo",
 	"isDesktopOnly": false
 }
