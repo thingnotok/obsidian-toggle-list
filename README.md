@@ -2,6 +2,23 @@
 
 This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the default behavior of toggle checkbox status. 
 
+## Fix the code for these suggestions
+
+
+- [ ] console.log('click', evt); this is boilerplate, you can remove it
+- [ ] this.registerInterval this is boilerplate, you can remove it
+- [ ] const statusBarItemEl = this.addStatusBarItem this is boilerplate, you can remove it
+- [ ] else if (selection.anchor.ch == 0) This code doesn't do anything
+- [ ] numberOfTabs This doesn't take into account lines indented with spaces
+- [ ] kapano this should be kepano
+- [ ] - ;;- [ ] ;;- [/] ;;- [x] ;;- [>] ;;- [?] ;;- [!] ;;- [-] ;; I suggest using \n as your delimiter instead so that users can put each form on its own line.
+- [ ] addText You should use a textarea instead.
+- [ ] Code Style nitpicks
+	- [ ] ToggleAction functions should be camelCase to distinguish them from ClassNames which are typically PascalCase
+	- [ ] process_one_line You should try to be consistent with the styling of function names (camelCase vs snake_case)
+	- [ ] var i = 0 You should avoid using var. Instead you should use let or const
+
+
 ## Why this plugin?
 
 ### 1. Simple project and task management system
