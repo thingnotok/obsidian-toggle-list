@@ -51,14 +51,16 @@ function getCurrentState(text: string, states: Array<string>): string {
 	return ''
 }
 
-function process_one_line(text: string, setting: ToggleListSettings) {
+function process_one_line(text: string, setting: ToggleListSettings, direction: number) {
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_state = getCurrentState(noident_text, setting.sorteds);
 	const cur_idx = setting.states_dict[cur_state]
-	var next_idx = cur_idx + 1;
+	var next_idx = cur_idx + direction;
 	if (next_idx == setting.states.length)
 		next_idx = 0;
+	if (next_idx < 0)
+		next_idx = setting.states.length - 1
 	const next_state = setting.states[next_idx]
 	const new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_state, next_state)
 	// console.log('Curent state:' + cur_state + '"')
@@ -67,7 +69,7 @@ function process_one_line(text: string, setting: ToggleListSettings) {
 	return { content: new_text, offset: next_state.length - cur_state.length }
 }
 
-function ToggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSettings) {
+function ToggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSettings, direction: number) {
 	var selection = editor.listSelections()[0];
 	var cursor = editor.getCursor();
 	var set_cur = false;
@@ -86,7 +88,7 @@ function ToggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSet
 	console.log("Origin=" + origin)
 	for (var i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		const r = process_one_line(origin, setting);
+		const r = process_one_line(origin, setting, direction);
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 		if (i == cursor.line) {
@@ -150,7 +152,14 @@ export default class ToggleList extends Plugin {
 			id: 'ToggleList-Next',
 			name: 'ToggleList-Next',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				ToggleAction(editor, view, this.settings)
+				ToggleAction(editor, view, this.settings, 1)
+			},
+		});
+		this.addCommand({
+			id: 'ToggleList-Prev',
+			name: 'ToggleList-Prev',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				ToggleAction(editor, view, this.settings, -1)
 			},
 		});
 
