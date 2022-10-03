@@ -85,7 +85,15 @@ As I mentioned, custom `css` are required to make those non-standard notations w
 1. Install and enable the "Minimal" Theme from Apperance.
 2. Replace the default states field with
   ```
-    - ;;- [ ] ;;- [/] ;;- [x] ;;- [>] ;;- [?] ;;- [!] ;;- [-] ;;
+  
+    - 
+	- [ ] 
+	- [/] 
+	- [x] 
+	- [>] 
+	- [?] 
+	- [!] 
+	- [-] 
   ```
 How it looks like:
 
