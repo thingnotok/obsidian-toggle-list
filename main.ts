@@ -22,8 +22,8 @@ const DEFAULT_SETTINGS: ToggleListSettings = {
 }
 
 function numberOfTabs(text: string) {
-	var count = 0;
-	var index = 0;
+	let count = 0;
+	let index = 0;
 	while (text.charAt(index++) === "\t") {
 		count++;
 	}
@@ -40,8 +40,8 @@ function ChangeState(text: string, prev: string, next: string) {
 
 function getCurrentState(text: string, states: Array<string>): string {
 	console.log('InputText=' + text)
-	for (var i = 0; i < states.length; i++) {
-		var s = states[i];
+	for (let i = 0; i < states.length; i++) {
+		const s = states[i];
 		// console.log('Compare=' + text.slice(0, s.length) + ',and,' + s)
 		if (text.slice(0, s.length) == s) {
 			// console.log('Matched')
@@ -51,12 +51,12 @@ function getCurrentState(text: string, states: Array<string>): string {
 	return ''
 }
 
-function process_one_line(text: string, setting: ToggleListSettings, direction: number) {
+function processOneLine(text: string, setting: ToggleListSettings, direction: number) {
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_state = getCurrentState(noident_text, setting.sorteds);
 	const cur_idx = setting.states_dict[cur_state]
-	var next_idx = cur_idx + direction;
+	let next_idx = cur_idx + direction;
 	if (next_idx == setting.states.length)
 		next_idx = 0;
 	if (next_idx < 0)
@@ -69,26 +69,26 @@ function process_one_line(text: string, setting: ToggleListSettings, direction: 
 	return { content: new_text, offset: next_state.length - cur_state.length }
 }
 
-function ToggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSettings, direction: number) {
-	var selection = editor.listSelections()[0];
-	var cursor = editor.getCursor();
-	var set_cur = false;
+function toggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSettings, direction: number) {
+	let selection = editor.listSelections()[0];
+	let cursor = editor.getCursor();
+	let set_cur = false;
 	if (selection.head.ch == selection.anchor.ch && selection.head.line == selection.anchor.line)
 		set_cur = true;
 	const head = selection.head.line
 	const anchor = selection.anchor.line
 	console.log("head=" + selection.head.ch)
 	console.log("anchor=" + selection.anchor.ch)
-	var start_line = head;
-	var end_line = anchor;
+	let start_line = head;
+	let end_line = anchor;
 	if (start_line > end_line) {
 		start_line = anchor;
 		end_line = head;
 	}
 	console.log("Origin=" + origin)
-	for (var i = start_line; i <= end_line; i++) {
+	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		const r = process_one_line(origin, setting, direction);
+		const r = processOneLine(origin, setting, direction);
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 		if (i == cursor.line) {
@@ -123,7 +123,7 @@ function updateSettingStates(setting: ToggleListSettings) {
 	console.log(setting.states);
 	const ori_states = setting.states
 	const state_dict = {}
-	for (var i = 0; i < ori_states.length; i++) {
+	for (let i = 0; i < ori_states.length; i++) {
 		state_dict[ori_states[i]] = i
 	}
 	setting.states_dict = state_dict;
@@ -143,14 +143,14 @@ export default class ToggleList extends Plugin {
 			id: 'ToggleList-Next',
 			name: 'ToggleList-Next',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				ToggleAction(editor, view, this.settings, 1)
+				toggleAction(editor, view, this.settings, 1)
 			},
 		});
 		this.addCommand({
 			id: 'ToggleList-Prev',
 			name: 'ToggleList-Prev',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				ToggleAction(editor, view, this.settings, -1)
+				toggleAction(editor, view, this.settings, -1)
 			},
 		});
 
@@ -185,7 +185,7 @@ class ToggleListSettingTab extends PluginSettingTab {
 
 	display(): void {
 		const { containerEl } = this;
-		var settings = this.plugin.settings
+		let settings = this.plugin.settings
 		containerEl.empty();
 		containerEl.createEl('h3', { text: 'Setup The States to Toggle' });
 		new Setting(containerEl)
