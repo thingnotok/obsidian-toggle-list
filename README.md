@@ -5,18 +5,18 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 ## Fix the code for these suggestions
 
 
-- [ ] console.log('click', evt); this is boilerplate, you can remove it
-- [ ] this.registerInterval this is boilerplate, you can remove it
-- [ ] const statusBarItemEl = this.addStatusBarItem this is boilerplate, you can remove it
-- [ ] else if (selection.anchor.ch == 0) This code doesn't do anything
-- [ ] numberOfTabs This doesn't take into account lines indented with spaces
-- [ ] kapano this should be kepano
-- [ ] - ;;- [ ] ;;- [/] ;;- [x] ;;- [>] ;;- [?] ;;- [!] ;;- [-] ;; I suggest using \n as your delimiter instead so that users can put each form on its own line.
-- [ ] addText You should use a textarea instead.
-- [ ] Code Style nitpicks
-	- [ ] ToggleAction functions should be camelCase to distinguish them from ClassNames which are typically PascalCase
-	- [ ] process_one_line You should try to be consistent with the styling of function names (camelCase vs snake_case)
-	- [ ] var i = 0 You should avoid using var. Instead you should use let or const
+- [x] console.log('click', evt); this is boilerplate, you can remove it
+- [x] this.registerInterval this is boilerplate, you can remove it
+- [x] const statusBarItemEl = this.addStatusBarItem this is boilerplate, you can remove it
+- [x] else if (selection.anchor.ch == 0) This code doesn't do anything
+- [x] numberOfTabs This doesn't take into account lines indented with spaces
+- [x] kapano this should be kepano
+- [x] - ;;- [ ] ;;- [/] ;;- [x] ;;- [>] ;;- [?] ;;- [!] ;;- [-] ;; I suggest using \n as your delimiter instead so that users can put each form on its own line.
+- [x] addText You should use a textarea instead.
+- [x] Code Style nitpicks
+	- [x] ToggleAction functions should be camelCase to distinguish them from ClassNames which are typically PascalCase
+	- [x] process_one_line You should try to be consistent with the styling of function names (camelCase vs snake_case)
+	- [x] var i = 0 You should avoid using var. Instead you should use let or const
 
 
 ## Why this plugin?
@@ -56,15 +56,25 @@ Here's an example project page to show why checkbox needs more states and why us
 ## Usage
 
 1. Enable it in the community plugin tab.
-2. Setup the states you want in the states field. All states are concatenated with `;;`. The defaut setup is `;;- ;;- [ ] ;;- [/] ;;- [x] `. This setup represents for states:
+2. Setup the states you want in the states field. Every states are listed one state per line. The defaut setup is:
 
-	  1. paragraphs, nothing but pure text, one of the best features obsidian beats roam-like apps
-	  2. list
-	  3. checkbox in todo state
-	  4. checkbox in a state for anything you want
-	  5. checkbox in done state
+	```
 
-3. Set the hotkey `Cmd`/`Ctrl` + `Enter` for this plugin "ToggleList: ToggleList->Next" you can search the command with the name. Since this hotkey is occupied by the official toggle, you need to delete the hotkey of "Toggle checkbox status" first.
+	- 
+	- [ ] 
+	- [/] 
+	- [x] 
+	```
+ 	This setup represents for states:
+
+	1. paragraphs, nothing but pure text, one of the best features obsidian beats roam-like apps
+	2. list
+	3. checkbox in todo state
+	4. checkbox in a state for anything you want
+	5. checkbox in done state
+
+3. Set the hotkey `Cmd`/`Ctrl` + `Enter`for this plugin "ToggleList: ToggleList->Next".Since `Cmd`/`Ctrl` + `Enter` hotkey is occupied by the official toggle, you need to delete the hotkey of "Toggle checkbox status" first. 
+	- You can also add a hotkey for "ToggleList: ToggleList->Prev" to toggle the states in reverse order.
 
 Note that the space after these prefixes is important. You need "- [ ] " to make a checkbox.
 
