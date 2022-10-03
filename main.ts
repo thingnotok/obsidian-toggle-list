@@ -178,7 +178,7 @@ class ToggleListSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: ToggleList) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.plugin.settings.all_states = this.plugin.settings.states.join(';;');
+		this.plugin.settings.all_states = this.plugin.settings.states.join('\n');
 		updateSettingStates(this.plugin.settings)
 	}
 
@@ -190,15 +190,15 @@ class ToggleListSettingTab extends PluginSettingTab {
 		containerEl.createEl('h3', { text: 'Setup The States to Toggle' });
 		new Setting(containerEl)
 			.setName('States')
-			.addText(text => text
+			.addTextArea(text => text
 				.setValue(settings.all_states)
 				.onChange(async (value) => {
 					settings.all_states = value;
-					settings.states = value.split(';;')
+					settings.states = value.split('\n')
 					await this.plugin.saveSettings();
 					updateSettingStates(settings);
 				}));
-		containerEl.createEl('p', { text: 'All states are concatenated with ;; in "States"' });
+		containerEl.createEl('p', { text: 'All states are concatenated with \n in "States"' });
 		containerEl.createEl('p', { text: 'You can add/delete states directly in "States" Field' });
 		containerEl.createEl('p', { text: 'States entries in settings will refresh after reopen.' });
 		containerEl.createEl('p', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
