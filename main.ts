@@ -60,12 +60,12 @@ function processOneLine(text: string, setting: ToggleListSettings, direction: nu
 	if (next_idx == setting.states.length)
 		next_idx = 0;
 	if (next_idx < 0)
-		next_idx = setting.states.length - 1
+		next_idx = setting.states.length - 1;
 	const next_state = setting.states[next_idx]
 	const new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_state, next_state)
 	// console.log('Curent state:' + cur_state + '"')
 	console.log('State=' + cur_state + '=>' + next_state)
-	console.log('LengthChangeFrom=' + cur_state.length + "=To=" + next_state.length)
+	// console.log('LengthChangeFrom=' + cur_state.length + "=To=" + next_state.length)
 	return { content: new_text, offset: next_state.length - cur_state.length }
 }
 
