@@ -28,7 +28,7 @@ Toggle behavior of official implementation (Toggle checkbox status, `Cmd`/`Ctrl`
 
 Here's an example project page to show why checkbox needs more states and why using the same hotkey to circle through them are good ideas
 
-![](resources/example_project.png)
+<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_project.png" width="300">
 
 
 ## Installation
@@ -56,7 +56,7 @@ Here's an example project page to show why checkbox needs more states and why us
 	4. checkbox in a state for anything you want
 	5. checkbox in done state
 
-3. Set the hotkey `Cmd`/`Ctrl` + `Enter`for this plugin "ToggleList: ToggleList->Next".Since `Cmd`/`Ctrl` + `Enter` hotkey is occupied by the official toggle, you need to delete the hotkey of "Toggle checkbox status" first. 
+3. Set the hotkey `Cmd`/`Ctrl` + `Enter`for this plugin "ToggleList: ToggleList->Next".Since `Cmd`/`Ctrl` + `Enter` hotkey is occupied by the official toggle, you need to deactivate the hotkey of "Toggle checkbox status" first. 
 	- You can also add a hotkey for "ToggleList: ToggleList->Prev" to toggle the states in reverse order.
 
 Note that the space after these prefixes is important. You need "- [ ] " to make a checkbox.
@@ -80,7 +80,7 @@ As I mentioned, custom `css` are required to make those non-standard notations w
   ```
 How it looks like:
 
-![](resources/minimal-supports.png)
+<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/minimal-supports.png" width="100">
 
 
-While it's cool, I need to remind you that too many states will make you hard to get back. (9 hotkey press requied to go back to the inital state in this example)
+While it's cool, I need to remind you that too many states will make you hard to get back. (9 key press requied to go back to the inital state in this example)
