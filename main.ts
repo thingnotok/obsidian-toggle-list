@@ -2,23 +2,30 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 
 // Remember to rename these classes and interfaces!
 
-interface ToggleListSettings {
+const DEFAULT_STATES = ['- ',
+	'- [ ] ',
+	'- [/] ',
+	'',]
+
+class Setup {
 	states: Array<string>;
 	sorteds: Array<string>;
-	states_dict: object;
+	states_dict: Map<string, number>;
 	all_states: string;
+	constructor() {
+		this.states = DEFAULT_STATES;
+		this.all_states = '';
+		this.states_dict = new Map();
+	}
 }
 
+interface ToggleListSettings {
+	setup_list: Array<Setup>;
+}
+
+
 const DEFAULT_SETTINGS: ToggleListSettings = {
-	states: [
-		'- ',
-		'- [ ] ',
-		'- [/] ',
-		'- [x] ',
-		'',],
-	all_states: '',
-	states_dict: {},
-	sorteds: []
+	setup_list: []
 }
 
 function numberOfTabs(text: string) {
@@ -52,16 +59,17 @@ function getCurrentState(text: string, states: Array<string>): string {
 }
 
 function processOneLine(text: string, setting: ToggleListSettings, direction: number) {
+	const setup = setting.setup_list[0]
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
-	const cur_state = getCurrentState(noident_text, setting.sorteds);
-	const cur_idx = setting.states_dict[cur_state]
+	const cur_state = getCurrentState(noident_text, setup.sorteds);
+	const cur_idx = setup.states_dict.get(cur_state) || 0;
 	let next_idx = cur_idx + direction;
-	if (next_idx == setting.states.length)
+	if (next_idx == setup.states.length)
 		next_idx = 0;
 	if (next_idx < 0)
-		next_idx = setting.states.length - 1;
-	const next_state = setting.states[next_idx]
+		next_idx = setup.states.length - 1;
+	const next_state = setup.states[next_idx]
 	const new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_state, next_state)
 	// console.log('Curent state:' + cur_state + '"')
 	console.log('State=' + cur_state + '=>' + next_state)
@@ -119,16 +127,14 @@ function toggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSet
 	// editor.setCursor(cursor)
 }
 
-function updateSettingStates(setting: ToggleListSettings) {
-	console.log(setting.states);
-	const ori_states = setting.states
-	const state_dict = {}
+function updateSettingStates(setup: Setup) {
+	console.log(setup.states);
+	const ori_states = setup.states
 	for (let i = 0; i < ori_states.length; i++) {
-		state_dict[ori_states[i]] = i
+		setup.states_dict.set(ori_states[i], i)
 	}
-	setting.states_dict = state_dict;
-	setting.sorteds = ori_states.slice(0)
-	setting.sorteds = setting.sorteds.sort((a: string, b: string) => b.length - a.length);
+	setup.sorteds = ori_states.slice(0)
+	setup.sorteds = setup.sorteds.sort((a: string, b: string) => b.length - a.length);
 }
 
 export default class ToggleList extends Plugin {
@@ -164,11 +170,38 @@ export default class ToggleList extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings.setup_list.push(new Setup())
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+}
+
+
+function add_state_group_setting(container: ToggleListSettingTab, settings: ToggleListSettings): void {
+	let default_setup = settings.setup_list[0];
+	new Setting(container.containerEl)
+		.setName('States')
+		.addTextArea(text => text.setValue(default_setup.all_states)
+			.onChange(async (value) => {
+				default_setup.all_states = value;
+				default_setup.states = value.split('\n')
+				await container.plugin.saveSettings();
+				updateSettingStates(default_setup);
+			}
+			));
+	new Setting(container.containerEl).addButton((cb) => {
+		cb.setButtonText("Add new hotkey for template")
+			.setCta()
+			.onClick(() => {
+				const new_setup = new Setup();
+				container.plugin.settings.setup_list.push(new_setup);
+				// container.plugin.save_settings();
+				// Force refresh
+				container.display();
+			});
+	});
 }
 
 
@@ -178,31 +211,24 @@ class ToggleListSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: ToggleList) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.plugin.settings.all_states = this.plugin.settings.states.join('\n');
-		updateSettingStates(this.plugin.settings)
+		let default_setup = this.plugin.settings.setup_list[0]
+		default_setup.all_states = default_setup.states.join('\n');
+		updateSettingStates(default_setup)
 	}
 
 
 	display(): void {
-		const { containerEl } = this;
+		// const { containerEl } = this;
+		this.containerEl.empty();
 		let settings = this.plugin.settings
-		containerEl.empty();
-		containerEl.createEl('h3', { text: 'Setup The States to Toggle' });
-		new Setting(containerEl)
-			.setName('States')
-			.addTextArea(text => text
-				.setValue(settings.all_states)
-				.onChange(async (value) => {
-					settings.all_states = value;
-					settings.states = value.split('\n')
-					await this.plugin.saveSettings();
-					updateSettingStates(settings);
-				}));
-		containerEl.createEl('p', { text: 'All states are concatenated with \n in "States"' });
-		containerEl.createEl('p', { text: 'You can add/delete states directly in "States" Field' });
-		containerEl.createEl('p', { text: 'States entries in settings will refresh after reopen.' });
-		containerEl.createEl('p', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
-		containerEl.createEl('p', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
-		containerEl.createEl('p', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next' });
+		this.containerEl.createEl('h3', { text: 'Setup The States to Toggle' })
+		add_state_group_setting(this, settings);
+
+		this.containerEl.createEl('p', { text: 'All states are concatenated with \n in "States"' });
+		this.containerEl.createEl('p', { text: 'You can add/delete states directly in "States" Field' });
+		this.containerEl.createEl('p', { text: 'States entries in settings will refresh after reopen.' });
+		this.containerEl.createEl('p', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
+		this.containerEl.createEl('p', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
+		this.containerEl.createEl('p', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next' });
 	}
 }
