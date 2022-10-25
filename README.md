@@ -26,22 +26,22 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 
 		```dataview
 			task  from "Folder" 
-			WHERE status = >
+			WHERE status = ">"
 			sort file.mtime desc
 		```
 
-		- Summarize all comments I make in this note with lable [?] 
+		- Summarize all comments I make in this note with lable [i] 
 
 		```dataview
 			task
 			from "Path/to/this/note"
-			where state = ?
+			where state = "i"
 		```
-	<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/query_example.png" width="300">
+Here's why checkbox needs more states and how these customized can be queried
 
-Here's an example project page to show why checkbox needs more states and why using the same hotkey to circle through them are good ideas
-
-<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_project.png" width="300">
+Project Usecase            |  Query Customized Items
+:-------------------------:|:-------------------------:
+<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_project.png" width="300"> |  <img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/query_example.png" width="400">
 
 
 ## Installation
