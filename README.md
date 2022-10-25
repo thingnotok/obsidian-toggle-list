@@ -5,12 +5,11 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 ## What this plugin does?
 
 1. Toggle the list states in a state group with hotkeys
-
-	- State group: [`""`, `- `, `- [ ] `, ` - [x] `]
+	- For example: State group: [`""`, `- `, `- [ ] `, ` - [x] `]
 
 2. Support multiple state groups
 
-	- You can setup multiple state groups with corresponding hotkeys for each group. This allow you to have separate groups for different purposes.
+	- You can setup multiple state groups with corresponding hotkeys for each group. This allow you to have separate groups for different purposes. For example:
 		- Task group: [`- [ ] `, ` - [/] `, ` - [x] `]
 		- Highlight group: [`- [i] `, ` - [!] `, ` - [?] `]
 
@@ -26,22 +25,22 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 
 		```dataview
 			task  from "Folder" 
-			WHERE status = >
+			WHERE status = ">"
 			sort file.mtime desc
 		```
 
-		- Summarize all comments I make in this note with lable [?] 
+		- Summarize all comments I make in this note with lable [i] 
 
 		```dataview
 			task
 			from "Path/to/this/note"
-			where state = ?
+			where status = "i"
 		```
-	<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/query_example.png" width="300">
+Here's why checkbox needs more states and how these customized can be queried
 
-Here's an example project page to show why checkbox needs more states and why using the same hotkey to circle through them are good ideas
-
-<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_project.png" width="300">
+Project Usecase            |  Query Customized Items
+:-------------------------:|:-------------------------:
+<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_project.png" width="300"> |  <img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/query_example.png" width="400">
 
 
 ## Installation
@@ -101,7 +100,7 @@ Here's an example project page to show why checkbox needs more states and why us
 
 ## ~~Advanced setup~~ Other things to make it beautiful
 
-As I mentioned, custom `css` are required to make those non-standard notations work. Here is an workcase of this plugin with [Minimal Theme](https://github.com/kepano/obsidian-minimal) and since the Minimal Theme is the default theme after [Obsidian v1.0.0](https://forum.obsidian.md/t/obsidian-release-v1-0-0/44873), You can enjoy the following rendered tasks without any modification.
+As I mentioned, custom `css` are required to make those non-standard notations work. Here is an workcase of this plugin with [Minimal Theme](https://github.com/kepano/obsidian-minimal), You can enjoy the following rendered tasks with Minimal setup.
 
 1. Replace the default states field with
   ```
