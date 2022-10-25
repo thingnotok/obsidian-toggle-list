@@ -66,6 +66,9 @@ export default class ToggleList extends Plugin {
 	// }
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		for (let i = 0; i < this.settings.setup_list.length; i++) {
+			updateSettingStates(this.settings.setup_list[i])
+		}
 	}
 
 	async saveSettings() {
