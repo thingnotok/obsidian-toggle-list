@@ -2,29 +2,41 @@
 
 This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the default behavior of toggle checkbox status. 
 
-## Why this plugin?
-
-### 1. Simple project and task management system
-
-I want to use obsidian as a simple task management tool (as many others are doing), but the existing task management are a little too complex for me. They are still good plugins and thanks the contributors and all the youtubers who teach me how to use. I just want to make obsidian to serve as my __project management tool__ (which I plan the actions to achieve goals, and they are naturally in checkbox style) and __task management tool__ (yup, tasks are checkbox too). While actions should eventually become tasks, they usually are not in the first place. Separating them requires a lot of tagging, dataview query, etc, which I'm really not good at. All I need is a one same hotkey to make a thought to list or actions, and press again, I can make it to current focusing task today.
-
-### 2. A simple fix to my naughty fingers
-
-I triggers "Toggle checkbox" much more than multiple times, some are intentional but most are not. I'm not sure why obsidian team decides we cannot use the same hotkey to covert checkbox back to list or paragraphs, but that's not for me.
-
-__Backgorund__
-Toggle behavior of official implementation (Toggle checkbox status, `Cmd`/`Ctrl`+`Enter`) has only two states: `checked` and `unchecked`
-
-```
-  - [ ]
-  - [x]
-```
-
 ## What this plugin does?
 
-1. You can define your desire states to circle with `Cmd`/`Ctrl` + `Enter`.
-2. Nothing else.
-3. While I'm not going to implement this, the script in this discussion: [Creating tasks that have three possible states instead of two](https://forum.obsidian.md/t/creating-tasks-that-have-three-possible-states-instead-of-two/24105/2) I found on forum is going to make a perfect couple with this plugin. A simple customization for the selfdefined states.
+1. Toggle the list states in a state group with hotkeys
+
+	- State group: `- [ ] || - [/] || - [x] `
+
+2. Support multiple state groups
+
+	- You can setup multiple state groups with corresponding hotkeys for each group. This allow you to have separate groups for different purposes.
+		- Task group: `- [ ] || - [/] || - [x] `
+		- Highlight group: `- [i] || - [?] || - [!] `
+
+3. Other setup to make it better
+
+	- Rendering for customized task state or tags
+		- check this discussion: [Creating tasks that have three possible states instead of two](https://forum.obsidian.md/t/creating-tasks-that-have-three-possible-states-instead-of-two/24105/2)
+		- Minimal themes supports many task states, check [advance setup](###advanced-setup-other-things-to-make-it-beautiful)
+
+	- [Dataview Queries](https://github.com/blacksmithgu/obsidian-dataview)
+
+		- Query tasks with state [>]
+
+		```dataview
+			task  from "Folder" 
+			WHERE status = >
+			sort file.mtime desc
+		```
+
+		- Summarize all comments I make in this note with lable [?] 
+
+		```dataview
+			task
+			from "Path/to/this/note"
+			where state = i
+		```
 
 Here's an example project page to show why checkbox needs more states and why using the same hotkey to circle through them are good ideas
 
@@ -83,4 +95,32 @@ How it looks like:
 <img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/minimal-supports.png" width="100">
 
 
-While it's cool, I need to remind you that too many states will make you hard to get back. (9 key press requied to go back to the inital state in this example)
+~~While it's cool, I need to remind you that too many states will make you hard to get back. (9 key press requied to go back to the inital state in this example)~~ You can now setup hotkeys for next/prev states.
+
+
+## Why this plugin?
+
+### 1. Simple project and task management system
+
+I want to use obsidian as a simple task management tool (as many others are doing), but the existing task management are a little too complex for me. They are still good plugins and thanks the contributors and all the youtubers who teach me how to use. I just want to make obsidian to serve as my __project management tool__ (which I plan the actions to achieve goals, and they are naturally in checkbox style) and __task management tool__ (yup, tasks are checkbox too). While actions should eventually become tasks, they usually are not in the first place. Separating them requires a lot of tagging, dataview query, etc, which I'm really not good at. All I need is a one same hotkey to make a thought to list or actions, and press again, I can make it to current focusing task today.
+
+### 2. A simple fix to my naughty fingers
+
+I triggers "Toggle checkbox" much more than multiple times, some are intentional but most are not. I'm not sure why obsidian team decides we cannot use the same hotkey to covert checkbox back to list or paragraphs, but that's not for me.
+
+__Backgorund__
+Toggle behavior of official implementation (Toggle checkbox status, `Cmd`/`Ctrl`+`Enter`) has only two states: `checked` and `unchecked`
+
+```
+  - [ ]
+  - [x]
+```
+
+
+## Changelog
+
+[1.0.1] - 2022-10-25
+---
+
+### Added
+- Allow multiple state groups 2c0e990a81bfb5e8996f48117663376e439c1228
