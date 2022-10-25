@@ -37,7 +37,7 @@ class ToggleListSettingTab extends PluginSettingTab {
 		// const { containerEl } = this;
 		this.containerEl.empty();
 		let settings = this.plugin.settings
-		console.log("Redraw UI")
+		// console.log("Redraw UI")
 		this.containerEl.createEl('h3', { text: 'Setup The States to Toggle' })
 		update_list_indexs(this.plugin.settings.setup_list)
 		add_state_group_setting(this, settings);
@@ -103,7 +103,7 @@ function ChangeState(text: string, prev: string, next: string) {
 }
 
 function getCurrentState(text: string, states: Array<string>): string {
-	console.log('InputText=' + text)
+	// console.log('InputText=' + text)
 	for (let i = 0; i < states.length; i++) {
 		const s = states[i];
 		// console.log('Compare=' + text.slice(0, s.length) + ',and,' + s)
@@ -119,7 +119,7 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_state = getCurrentState(noident_text, setup.sorteds);
-	console.log(setup)
+	// console.log(setup)
 	const cur_idx = setup.states_dict.get(cur_state) || 0;
 	let next_idx = cur_idx + direction;
 	if (next_idx == setup.states.length)
@@ -129,14 +129,14 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	const next_state = setup.states[next_idx]
 	const new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_state, next_state)
 	// console.log('Curent state:' + cur_state + '"')
-	console.log('State=' + cur_state + '=>' + next_state)
+	// console.log('State=' + cur_state + '=>' + next_state)
 	// console.log('LengthChangeFrom=' + cur_state.length + "=To=" + next_state.length)
 	return { content: new_text, offset: next_state.length - cur_state.length }
 }
 
 function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, direction: number) {
-	console.log('action')
-	console.log(setup)
+	// console.log('action')
+	// console.log(setup)
 	let selection = editor.listSelections()[0];
 	let cursor = editor.getCursor();
 	let set_cur = false;
@@ -144,8 +144,8 @@ function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, directio
 		set_cur = true;
 	const head = selection.head.line
 	const anchor = selection.anchor.line
-	console.log("head=" + selection.head.ch)
-	console.log("anchor=" + selection.anchor.ch)
+	// console.log("head=" + selection.head.ch)
+	// console.log("anchor=" + selection.anchor.ch)
 	let start_line = head;
 	let end_line = anchor;
 	if (start_line > end_line) {
@@ -154,23 +154,23 @@ function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, directio
 	}
 	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		console.log("Origin=" + origin)
+		// console.log("Origin=" + origin)
 		const r = processOneLine(origin, setup, direction);
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 		if (i == cursor.line) {
 			cursor.ch = cursor.ch + r.offset;
 		}
-		console.log("Processing=" + i + "=[" + start_line + "=]" + end_line)
+		// console.log("Processing=" + i + "=[" + start_line + "=]" + end_line)
 		if (i == head) {
-			console.log('head with=' + r.offset)
+			// console.log('head with=' + r.offset)
 			if (selection.head.ch < -r.offset)
 				selection.head.ch = 0;
 			else
 				selection.head.ch = selection.head.ch + r.offset;
 		}
 		if (i == anchor) {
-			console.log('anchor with=' + r.offset)
+			// console.log('anchor with=' + r.offset)
 			if (selection.anchor.ch < -r.offset)
 				selection.anchor.ch = 0;
 			else
@@ -178,15 +178,15 @@ function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, directio
 		}
 	}
 	editor.setSelection(selection.anchor, selection.head)
-	console.log("Nhead=" + selection.head.ch)
-	console.log("Nanchor=" + selection.anchor.ch)
+	// console.log("Nhead=" + selection.head.ch)
+	// console.log("Nanchor=" + selection.anchor.ch)
 	if (set_cur)
 		editor.setCursor(cursor)
 }
 
 function updateSettingStates(setup: Setup) {
-	console.log('beg:updateSettingStates');
-	console.log(setup.states);
+	// console.log('beg:updateSettingStates');
+	// console.log(setup.states);
 	setup.all_states = setup.states.join('\n')
 	const ori_states = setup.states
 	setup.states_dict = new Map();
@@ -195,13 +195,13 @@ function updateSettingStates(setup: Setup) {
 	}
 	setup.sorteds = ori_states.slice(0)
 	setup.sorteds = setup.sorteds.sort((a: string, b: string) => b.length - a.length);
-	console.log('end:updateSettingStates');
-	console.log(setup)
-	console.log('--------')
+	// console.log('end:updateSettingStates');
+	// console.log(setup)
+	// console.log('--------')
 }
 
 function register_actions(plugin: Plugin) {
-	console.log('Register Command')
+	// console.log('Register Command')
 	let setup_list = plugin.settings.setup_list
 	for (let i = 0; i < setup_list.length; i++) {
 		const setup = setup_list[i]
@@ -222,9 +222,9 @@ function register_actions(plugin: Plugin) {
 				toggleAction(editor, view, setup, -1)
 			},
 		});
-		console.log(setup.cmd_list)
+		// console.log(setup.cmd_list)
 	}
-	console.log('-------------------')
+	// console.log('-------------------')
 }
 
 function unregist_action(plugin: Plugin, sg: Setup) {
@@ -247,7 +247,7 @@ function removeStateGroup(plugin: Plugin, setup: Setup) {
 }
 
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
-	console.log('Add new setup ui')
+	// console.log('Add new setup ui')
 	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
 		cb.setButtonText("x")
 			.setCta()
@@ -275,8 +275,8 @@ function update_list_indexs(setup_list: Array<Setup>): void {
 
 function add_state_group_setting(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	const setup_list = settings.setup_list
-	console.log("Draw UI: ")
-	console.log(setup_list)
+	// console.log("Draw UI: ")
+	// console.log(setup_list)
 	for (let i = 0; i < setup_list.length; i++) {
 		addSetupUI(container, settings.setup_list[i]);
 	}
@@ -285,7 +285,7 @@ function add_state_group_setting(container: ToggleListSettingTab, settings: Togg
 		cb.setButtonText("Add new States Group")
 			.setCta()
 			.onClick(() => {
-				console.log(container.plugin.settings)
+				// console.log(container.plugin.settings)
 				settings = container.plugin.settings
 				const new_setup = new Setup(DEFAULT_STATES);
 				settings.setup_list.push(new_setup);
