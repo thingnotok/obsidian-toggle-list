@@ -123,4 +123,4 @@ Toggle behavior of official implementation (Toggle checkbox status, `Cmd`/`Ctrl`
 ---
 
 ### Added
-- Allow multiple state groups 2c0e990a81bfb5e8996f48117663376e439c1228
+- Allow multiple state groups
