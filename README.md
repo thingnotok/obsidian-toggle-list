@@ -37,6 +37,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 			from "Path/to/this/note"
 			where state = ?
 		```
+	<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/query_example.png" width="300">
 
 Here's an example project page to show why checkbox needs more states and why using the same hotkey to circle through them are good ideas
 
