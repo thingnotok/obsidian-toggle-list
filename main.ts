@@ -203,7 +203,7 @@ function updateSettingStates(setup: Setup) {
 	// console.log('--------')
 }
 
-function register_actions(plugin: Plugin) {
+function register_actions(plugin: ToggleList) {
 	// console.log('Register Command')
 	let setup_list = plugin.settings.setup_list
 	for (let i = 0; i < setup_list.length; i++) {
@@ -230,7 +230,7 @@ function register_actions(plugin: Plugin) {
 	// console.log('-------------------')
 }
 
-function unregist_action(plugin: Plugin, sg: Setup) {
+function unregist_action(plugin: ToggleList, sg: Setup) {
 	for (let i = 0; i < sg.cmd_list.length; i++) {
 		const name = sg.cmd_list[i]
 		plugin.addCommand({
@@ -241,7 +241,7 @@ function unregist_action(plugin: Plugin, sg: Setup) {
 	}
 }
 
-function removeStateGroup(plugin: Plugin, setup: Setup) {
+function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	const index = setup.index;
 	let sg = plugin.settings.setup_list.splice(index, 1)[0];
 	plugin.saveSettings();
