@@ -5,12 +5,11 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 ## What this plugin does?
 
 1. Toggle the list states in a state group with hotkeys
-
-	- State group: [`""`, `- `, `- [ ] `, ` - [x] `]
+	- For example: State group: [`""`, `- `, `- [ ] `, ` - [x] `]
 
 2. Support multiple state groups
 
-	- You can setup multiple state groups with corresponding hotkeys for each group. This allow you to have separate groups for different purposes.
+	- You can setup multiple state groups with corresponding hotkeys for each group. This allow you to have separate groups for different purposes. For example:
 		- Task group: [`- [ ] `, ` - [/] `, ` - [x] `]
 		- Highlight group: [`- [i] `, ` - [!] `, ` - [?] `]
 
@@ -35,7 +34,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 		```dataview
 			task
 			from "Path/to/this/note"
-			where state = "i"
+			where status = "i"
 		```
 Here's why checkbox needs more states and how these customized can be queried
 
