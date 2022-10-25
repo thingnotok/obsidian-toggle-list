@@ -11,8 +11,8 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 2. Support multiple state groups
 
 	- You can setup multiple state groups with corresponding hotkeys for each group. This allow you to have separate groups for different purposes.
-		- Task group: `- [ ] || - [/] || - [x] `
-		- Highlight group: `- [i] || - [?] || - [!] `
+		- Task group: [`- [ ] `, ` - [/] `, ` - [x] `]
+		- Highlight group: [`- [i] `, ` - [!] `, ` - [?] `]
 
 3. Other setup to make it better
 
@@ -35,7 +35,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 		```dataview
 			task
 			from "Path/to/this/note"
-			where state = i
+			where state = ?
 		```
 
 Here's an example project page to show why checkbox needs more states and why using the same hotkey to circle through them are good ideas
