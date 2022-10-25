@@ -7,25 +7,82 @@ const DEFAULT_STATES = ['- ',
 	'- [/] ',
 	'',]
 
+const EMPTY_STATES = Array<string>()
+
 class Setup {
+	index: number;
 	states: Array<string>;
 	sorteds: Array<string>;
 	states_dict: Map<string, number>;
 	all_states: string;
-	constructor() {
-		this.states = DEFAULT_STATES;
-		this.all_states = '';
-		this.states_dict = new Map();
+	cmd_list: Array<string>;
+	constructor(STATES: Array<string>) {
+		this.index = 0;
+		this.states = STATES;
+		this.cmd_list = new Array<string>;
+		updateSettingStates(this);
 	}
 }
 
-interface ToggleListSettings {
-	setup_list: Array<Setup>;
+class ToggleListSettingTab extends PluginSettingTab {
+	plugin: ToggleList;
+
+	constructor(app: App, plugin: ToggleList) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
+
+
+	display(): void {
+		// const { containerEl } = this;
+		this.containerEl.empty();
+		let settings = this.plugin.settings
+		console.log("Redraw UI")
+		this.containerEl.createEl('h3', { text: 'Setup The States to Toggle' })
+		update_list_indexs(this.plugin.settings.setup_list)
+		add_state_group_setting(this, settings);
+
+		this.containerEl.createEl('p', { text: 'All states are concatenated with \n in "States"' });
+		this.containerEl.createEl('p', { text: 'You can add/delete states directly in "States" Field' });
+		this.containerEl.createEl('p', { text: 'States entries in settings will refresh after reopen.' });
+		this.containerEl.createEl('p', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
+		this.containerEl.createEl('p', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
+		this.containerEl.createEl('p', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next' });
+	}
 }
 
 
+export default class ToggleList extends Plugin {
+	settings: ToggleListSettings;
+
+	async onload() {
+		await this.loadSettings();
+		// This adds a settings tab so the user can configure various aspects of the plugin
+		this.addSettingTab(new ToggleListSettingTab(this.app, this));
+		register_actions(this);
+	}
+	// onunload() {
+
+	// }
+	async loadSettings() {
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+	}
+
+	async saveSettings() {
+		await this.saveData(this.settings);
+	}
+}
+
+
+
+interface ToggleListSettings {
+	setup_list: Array<Setup>;
+	cmd_list: Array<string>;
+}
+
 const DEFAULT_SETTINGS: ToggleListSettings = {
-	setup_list: []
+	setup_list: [],
+	cmd_list: []
 }
 
 function numberOfTabs(text: string) {
@@ -58,11 +115,11 @@ function getCurrentState(text: string, states: Array<string>): string {
 	return ''
 }
 
-function processOneLine(text: string, setting: ToggleListSettings, direction: number) {
-	const setup = setting.setup_list[0]
+function processOneLine(text: string, setup: Setup, direction: number) {
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_state = getCurrentState(noident_text, setup.sorteds);
+	console.log(setup)
 	const cur_idx = setup.states_dict.get(cur_state) || 0;
 	let next_idx = cur_idx + direction;
 	if (next_idx == setup.states.length)
@@ -77,7 +134,9 @@ function processOneLine(text: string, setting: ToggleListSettings, direction: nu
 	return { content: new_text, offset: next_state.length - cur_state.length }
 }
 
-function toggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSettings, direction: number) {
+function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, direction: number) {
+	console.log('action')
+	console.log(setup)
 	let selection = editor.listSelections()[0];
 	let cursor = editor.getCursor();
 	let set_cur = false;
@@ -93,10 +152,10 @@ function toggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSet
 		start_line = anchor;
 		end_line = head;
 	}
-	console.log("Origin=" + origin)
 	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		const r = processOneLine(origin, setting, direction);
+		console.log("Origin=" + origin)
+		const r = processOneLine(origin, setup, direction);
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 		if (i == cursor.line) {
@@ -123,112 +182,118 @@ function toggleAction(editor: Editor, view: MarkdownView, setting: ToggleListSet
 	console.log("Nanchor=" + selection.anchor.ch)
 	if (set_cur)
 		editor.setCursor(cursor)
-	// console.log('NCursor@' + cursor.ch)
-	// editor.setCursor(cursor)
 }
 
 function updateSettingStates(setup: Setup) {
+	console.log('beg:updateSettingStates');
 	console.log(setup.states);
+	setup.all_states = setup.states.join('\n')
 	const ori_states = setup.states
+	setup.states_dict = new Map();
 	for (let i = 0; i < ori_states.length; i++) {
 		setup.states_dict.set(ori_states[i], i)
 	}
 	setup.sorteds = ori_states.slice(0)
 	setup.sorteds = setup.sorteds.sort((a: string, b: string) => b.length - a.length);
+	console.log('end:updateSettingStates');
+	console.log(setup)
+	console.log('--------')
 }
 
-export default class ToggleList extends Plugin {
-	settings: ToggleListSettings;
-
-	async onload() {
-		await this.loadSettings();
-
-
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'ToggleList-Next',
-			name: 'ToggleList-Next',
+function register_actions(plugin: Plugin) {
+	console.log('Register Command')
+	let setup_list = plugin.settings.setup_list
+	for (let i = 0; i < setup_list.length; i++) {
+		const setup = setup_list[i]
+		const n_name = 'ToggleList[' + setup.index.toString() + ']-Next'
+		const p_name = 'ToggleList[' + setup.index.toString() + ']-Prev'
+		setup.cmd_list = [n_name, p_name]
+		plugin.addCommand({
+			id: n_name,
+			name: n_name,
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, this.settings, 1)
+				toggleAction(editor, view, setup, 1)
 			},
 		});
-		this.addCommand({
-			id: 'ToggleList-Prev',
-			name: 'ToggleList-Prev',
+		plugin.addCommand({
+			id: p_name,
+			name: p_name,
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, this.settings, -1)
+				toggleAction(editor, view, setup, -1)
 			},
 		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new ToggleListSettingTab(this.app, this));
+		console.log(setup.cmd_list)
 	}
+	console.log('-------------------')
+}
 
-	onunload() {
-
-	}
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.settings.setup_list.push(new Setup())
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
+function unregist_action(plugin: Plugin, sg: Setup) {
+	for (let i = 0; i < sg.cmd_list.length; i++) {
+		const name = sg.cmd_list[i]
+		plugin.addCommand({
+			id: name,
+			name: name,
+			editorCallback: (editor: Editor, view: MarkdownView) => { }
+		})
 	}
 }
 
+function removeStateGroup(plugin: Plugin, setup: Setup) {
+	const index = setup.index;
+	let sg = plugin.settings.setup_list.splice(index, 1)[0];
+	plugin.saveSettings();
+	unregist_action(plugin, sg)
+	// register_actions(plugin)
+}
 
-function add_state_group_setting(container: ToggleListSettingTab, settings: ToggleListSettings): void {
-	let default_setup = settings.setup_list[0];
-	new Setting(container.containerEl)
-		.setName('States')
-		.addTextArea(text => text.setValue(default_setup.all_states)
-			.onChange(async (value) => {
-				default_setup.all_states = value;
-				default_setup.states = value.split('\n')
-				await container.plugin.saveSettings();
-				updateSettingStates(default_setup);
-			}
-			));
-	new Setting(container.containerEl).addButton((cb) => {
-		cb.setButtonText("Add new hotkey for template")
+function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
+	console.log('Add new setup ui')
+	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
+		cb.setButtonText("x")
 			.setCta()
 			.onClick(() => {
-				const new_setup = new Setup();
-				container.plugin.settings.setup_list.push(new_setup);
-				// container.plugin.save_settings();
+				removeStateGroup(container.plugin, setup)
 				// Force refresh
 				container.display();
 			});
 	});
+	sg_ui.setName('State Group: ' + setup.index.toString())
+		.addTextArea(text => text.setValue(setup.all_states)
+			.onChange(async (value) => {
+				setup.all_states = value;
+				setup.states = value.split('\n')
+				await container.plugin.saveSettings();
+				updateSettingStates(setup);
+			}
+			));
 }
 
+function update_list_indexs(setup_list: Array<Setup>): void {
+	for (let i = 0; i < setup_list.length; i++)
+		setup_list[i].index = i;
+}
 
-class ToggleListSettingTab extends PluginSettingTab {
-	plugin: ToggleList;
-
-	constructor(app: App, plugin: ToggleList) {
-		super(app, plugin);
-		this.plugin = plugin;
-		let default_setup = this.plugin.settings.setup_list[0]
-		default_setup.all_states = default_setup.states.join('\n');
-		updateSettingStates(default_setup)
+function add_state_group_setting(container: ToggleListSettingTab, settings: ToggleListSettings): void {
+	const setup_list = settings.setup_list
+	console.log("Draw UI: ")
+	console.log(setup_list)
+	for (let i = 0; i < setup_list.length; i++) {
+		addSetupUI(container, settings.setup_list[i]);
 	}
 
-
-	display(): void {
-		// const { containerEl } = this;
-		this.containerEl.empty();
-		let settings = this.plugin.settings
-		this.containerEl.createEl('h3', { text: 'Setup The States to Toggle' })
-		add_state_group_setting(this, settings);
-
-		this.containerEl.createEl('p', { text: 'All states are concatenated with \n in "States"' });
-		this.containerEl.createEl('p', { text: 'You can add/delete states directly in "States" Field' });
-		this.containerEl.createEl('p', { text: 'States entries in settings will refresh after reopen.' });
-		this.containerEl.createEl('p', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
-		this.containerEl.createEl('p', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
-		this.containerEl.createEl('p', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next' });
-	}
+	new Setting(container.containerEl).addButton((cb) => {
+		cb.setButtonText("Add new States Group")
+			.setCta()
+			.onClick(() => {
+				console.log(container.plugin.settings)
+				settings = container.plugin.settings
+				const new_setup = new Setup(DEFAULT_STATES);
+				settings.setup_list.push(new_setup);
+				update_list_indexs(settings.setup_list)
+				container.plugin.saveSettings();
+				register_actions(container.plugin);
+				// Force refresh
+				container.display();
+			});
+	});
 }
