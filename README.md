@@ -6,7 +6,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 
 1. Toggle the list states in a state group with hotkeys
 
-	- State group: `- [ ] || - [/] || - [x] `
+	- State group: [`""`, `- `, `- [ ] `, ` - [x] `]
 
 2. Support multiple state groups
 
@@ -44,14 +44,30 @@ Here's an example project page to show why checkbox needs more states and why us
 
 
 ## Installation
- 
-- Download the folder and put in `Vault/.obsidian/plugin`.
-- Maybe I'll publish it on the official list someday.
 
-## Usage
+### From repositary
+
+1. Download the folder and put in `Vault/.obsidian/plugin`.
+1. Enable it from Installed Plugins
+
+### From Community Plugins
+
+1. Search for ToggleList in Commnity Plugins/Browse
+1. Install and enable it from Installed Plugins
+
+### From [BRAT](https://github.com/TfTHacker/obsidian42-brat)
+
+1. Install [Obsidian 42 - BRAT] from Community Plugins
+2. Add this repository in Obsidian 42 - BRAT/ Add Beta Plugin
+	- Paste this url: `https://github.com/thingnotok/obsidian-toggle-list`
+3. Enable this plugin from Installed Plugins
+
+
+## Basic Usage
 
 1. Enable it in the community plugin tab.
-2. Setup the states you want in the states field. Every states are listed one state per line. The defaut setup is:
+2. You can setup the states in the preference panel/Community Plugins/ToggleList/Options. 
+	Every states are listed one state per line. The defaut setup is:
 
 	```
 
@@ -68,17 +84,25 @@ Here's an example project page to show why checkbox needs more states and why us
 	4. checkbox in a state for anything you want
 	5. checkbox in done state
 
+	Note that the space after these prefixes is important. You need "- [ ] " to make a checkbox.
+
 3. Set the hotkey `Cmd`/`Ctrl` + `Enter`for this plugin "ToggleList: ToggleList->Next".Since `Cmd`/`Ctrl` + `Enter` hotkey is occupied by the official toggle, you need to deactivate the hotkey of "Toggle checkbox status" first. 
 	- You can also add a hotkey for "ToggleList: ToggleList->Prev" to toggle the states in reverse order.
 
-Note that the space after these prefixes is important. You need "- [ ] " to make a checkbox.
+
+## Multiple State Groups
+
+1. You can add/delete state groups in the ToggleList's optiona panel. 
+2. You can setup hotkeys for each state groups in the hotkey panel.
+    - Each state group is associated with two commands: `ToggleList: ToggleList[id]-Next` and `-Prev`
+    - Currently, two command will be added with state group and they won't be remove until app restart.
+		- These commands will have no effect after the state group is removed.
 
 ## ~~Advanced setup~~ Other things to make it beautiful
 
-As I mentioned, custom `css` are required to make those non-standard notations work. And after finishing this plugin, I surpriely find out the theme I'm using: [Minimal](https://github.com/kepano/obsidian-minimal) supports a lot of cool icons for special styled lists (love you [kapano](https://www.buymeacoffee.com/kepano) <3 ). Here's how you can enable them all.
+As I mentioned, custom `css` are required to make those non-standard notations work. Here is an workcase of this plugin with [Minimal Theme](https://github.com/kepano/obsidian-minimal) and since the Minimal Theme is the default theme after [Obsidian v1.0.0](https://forum.obsidian.md/t/obsidian-release-v1-0-0/44873), You can enjoy the following rendered tasks without any modification.
 
-1. Install and enable the "Minimal" Theme from Apperance.
-2. Replace the default states field with
+1. Replace the default states field with
   ```
   
     - 
