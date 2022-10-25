@@ -100,7 +100,7 @@ Project Usecase            |  Query Customized Items
 
 ## ~~Advanced setup~~ Other things to make it beautiful
 
-As I mentioned, custom `css` are required to make those non-standard notations work. Here is an workcase of this plugin with [Minimal Theme](https://github.com/kepano/obsidian-minimal) and since the Minimal Theme is the default theme after [Obsidian v1.0.0](https://forum.obsidian.md/t/obsidian-release-v1-0-0/44873), You can enjoy the following rendered tasks without any modification.
+As I mentioned, custom `css` are required to make those non-standard notations work. Here is an workcase of this plugin with [Minimal Theme](https://github.com/kepano/obsidian-minimal), You can enjoy the following rendered tasks with Minimal setup.
 
 1. Replace the default states field with
   ```
