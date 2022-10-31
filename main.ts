@@ -135,20 +135,20 @@ function getRegExp(text: string) {
 }
 
 function getCurrentState(text: string, states: Array<string>) {
-	console.log('Using:' + states)
+	// console.log('Using:' + states)
 	for (let i = 0; i < states.length; i++) {
-		console.log('Current:' + states[i])
+		// console.log('Current:' + states[i])
 		const s = states[i].split('||');
 		const prefix = getRegExp(s[0])
 		const suffix = getRegExp(s[1])
-		console.log(prefix)
-		console.log(suffix)
+		// console.log(prefix)
+		// console.log(suffix)
 		let state_regex = new RegExp(`^${prefix}(.*)${suffix}$`);
-		console.log(state_regex)
+		// console.log(state_regex)
 		const result = text.match(state_regex) || []
 		if (result.length > 0) {
-			console.log("MatchedResult:" + i + "<>" + result)
-			console.log(result)
+			// console.log("MatchedResult:" + i + "<>" + result)
+			// console.log(result)
 			return { sorted_idx: i, raw: result[1] }
 		}
 	}
@@ -171,7 +171,7 @@ function roundAdd(a: number, b: number, low: number, high: number): number {
 }
 
 function processOneLine(text: string, setup: Setup, direction: number) {
-	console.log(setup)
+	// console.log(setup)
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_match = getCurrentState(noident_text, setup.sorteds);
@@ -182,13 +182,13 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
-	console.log('Current State')
-	console.log(cur_pair)
-	console.log('Next State')
-	console.log(next_pair)
+	// console.log('Current State')
+	// console.log(cur_pair)
+	// console.log('Next State')
+	// console.log(next_pair)
 	let new_text = '\t'.repeat(idents) + ChangeState(cur_match.raw, cur_pair, next_pair)
-	console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
-	console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
+	// console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
+	// console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
 	return { content: new_text, offset: next_pair[0].length - cur_pair[0].length }
 }
 
@@ -261,7 +261,7 @@ function updateSettingStates(setup: Setup) {
 }
 
 function registerActions(plugin: ToggleList) {
-	console.log(plugin.settings.setup_list)
+	// console.log(plugin.settings.setup_list)
 	plugin.settings.setup_list.forEach(setup => {
 		const n_name = ' [' + setup.index.toString() + ']-Next'
 		const p_name = ' [' + setup.index.toString() + ']-Prev'
