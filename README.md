@@ -58,17 +58,17 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 		- Query tasks with state [>]
 
 		```dataview
-			task  from "Folder" 
-			WHERE status = ">"
-			sort file.mtime desc
+		task  from "Folder" 
+		WHERE status = ">"
+		sort file.mtime desc
 		```
 
 		- Summarize all comments I make in this note with lable [i] 
 
 		```dataview
-			task
-			from "Path/to/this/note"
-			where status = "i"
+		task
+		from "Path/to/this/note"
+		where status = "i"
 		```
 Here's why checkbox needs more states and how these customized can be queried
 
