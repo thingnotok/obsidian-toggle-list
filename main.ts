@@ -287,11 +287,7 @@ function register_actions(plugin: ToggleList) {
 function unregist_action(plugin: ToggleList, sg: Setup) {
 	for (let i = 0; i < sg.cmd_list.length; i++) {
 		const name = sg.cmd_list[i]
-		plugin.addCommand({
-			id: name,
-			name: name,
-			editorCallback: (editor: Editor, view: MarkdownView) => { }
-		})
+		deleteObsidianCommand(this.app, `obsidian-toggle-list:${name}`)
 	}
 }
 
@@ -374,4 +370,17 @@ function add_state_group_setting(container: ToggleListSettingTab, settings: Togg
 				container.display();
 			});
 	});
+}
+
+
+// modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
+function deleteObsidianCommand(app: App, commandId: string) {
+	// console.log("Revoke Command=" + commandId)
+	// @ts-ignore
+	if (app.commands.findCommand(commandId)) {
+		// @ts-ignore
+		delete app.commands.commands[commandId];
+		// @ts-ignore
+		delete app.commands.editorCommands[commandId];
+	}
 }
