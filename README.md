@@ -46,7 +46,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 		where !completed and contains(tags,"#p3")
 		```
 
-		- Summarize all comments I make in this note with in List Callout format
+		- Summarize all comments I make in this note in List Callout format
 
 		```dataview
 		TABLE WITHOUT ID Lists.text AS "highlight", link(Lists.link, meta(Lists.section).subpath) AS "Section" 
