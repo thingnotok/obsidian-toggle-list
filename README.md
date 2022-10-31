@@ -197,7 +197,17 @@ Toggle behavior of official implementation (Toggle checkbox status, `Cmd`/`Ctrl`
 
 ## Changelog
 
-[1.0.1] - 2022-10-25
+[1.0.3/4] - [[2022-10-31]]
+---
+- Add suffix to support Tasks Plugin usage
+- Add an additional default group to show List Callouts Plugin usage
+- Add random state group selection to new group button
+- Add Reset button to recover to default state groups
+- Add Hotkey button to link to hotkey setup page
+- Update Description in setting tab page
+
+
+[1.0.1] - [[2022-10-25]]
 ---
 
 ### Added
