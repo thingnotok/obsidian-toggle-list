@@ -20,9 +20,13 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 	- Scanarios:
 		- Work with Tasks Plugin:
 			- by adding {tasks-today} as suffix in done state, this plugin can support [Tasks plugin](https://github.com/obsidian-tasks-group/obsidian-tasks). You can toggle a line through paragraph/list/todo/done while keeping Tasks's task attributes. Also you can have multiline support.
-			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_withtasks.png" width="300"> 
+			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_tasks.png" width="440"> 
 		- GTD task organize:
-			- by adding category/location/tags as suffix, you can toggle through frequent with single hotkey.
+			- by adding category/location/tags as todo prefix/surfix, you can toggle through frequent with single hotkey.
+			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_gtd.png" width="440"> 
+		- Work with List Callouts
+			- Use [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) to highlight your customized list states and use togglelist jump to states.
+			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_listcallout.png" width="440"> 
 		
 
 3. Other setup to make it better
@@ -30,14 +34,27 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 	- Rendering for customized task state or tags
 		- check this discussion: [Creating tasks that have three possible states instead of two](https://forum.obsidian.md/t/creating-tasks-that-have-three-possible-states-instead-of-two/24105/2)
 		- Minimal themes supports many task states, check [advance setup](###advanced-setup-other-things-to-make-it-beautiful)
-
-
-	- Rendering for customized list state
-		- Use [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) to highlight your customized list states and use togglelist jump to states.
-		<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_withlistcallout.png" width="300"> 
+		- [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) for list highlighting.
 
 	- [Dataview Queries](https://github.com/blacksmithgu/obsidian-dataview)
+		
+		- Query all task with tag `#p3`
 
+		```dataview
+		task 
+		from "/"
+		where !completed and contains(tags,"#p3")
+		```
+
+		- Summarize all comments I make in this note with in List Callout format
+
+		```dataview
+		TABLE WITHOUT ID Lists.text AS "highlight", link(Lists.link, meta(Lists.section).subpath) AS "Section" 
+		WHERE file.path = this.file.path 
+		FLATTEN file.lists AS Lists 
+		WHERE contains(Lists.text, "? ") or contains(Lists.text, "~ ") or contains(Lists.text, "! ")
+		```
+		
 		- Query tasks with state [>]
 
 		```dataview
