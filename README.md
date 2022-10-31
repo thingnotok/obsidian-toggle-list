@@ -96,12 +96,13 @@ Project Usecase            |  Query Customized Items
 	- Paste this url: `https://github.com/thingnotok/obsidian-toggle-list`
 3. Enable this plugin from Installed Plugins
 
+# Manual
 
 ## Basic Usage
 
 1. Enable it in the community plugin tab.
 2. You can setup the states in the preference panel/Community Plugins/ToggleList/Options. 
-	Every states are listed one state per line. The defaut setup is:
+	Every states are listed one state per line. An example setup with 5 states is shown:
 
 	```
 
@@ -131,6 +132,25 @@ Project Usecase            |  Query Customized Items
     - Each state group is associated with two commands: `ToggleList: ToggleList[id]-Next` and `-Prev`
     - Currently, two command will be added with state group and they won't be remove until app restart.
 		- These commands will have no effect after the state group is removed.
+
+## Suffix Support
+
+__This feature may be buggy, I only test it on my own flow. If it doesn't work for your flow, please leave a [Issue](https://github.com/thingnotok/obsidian-toggle-list/issues) so I can help.__
+
+1. A state with prefix and suffix pair is in format `{prefix}||{suffix}`.
+	- Prefixes of states will always locate at the begining of line, and suffixes will be at the ending. 	
+2. A special type of suffix {tasks-today} can be used to indicate a [Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks)-style completed decoration: `✅ YYYY-MM-DD`. You can find how to specify this in the default groups.
+	- leave a issue if there are any special format you would like to use.
+
+## Buttons
+
+- `+ State Group`: Add new state group.
+- `🔥 Hotkeys`: navigate to hotkey setting page for ToggleList commands.
+- `↻ Reset`: clear all the current state groups and replace with default groups. 
+	- The default groups demonstrte all the supported features in the latest release.
+	- This command will wipe all the existing state groups. You should backup first.
+		- setting path: `vault/.obsidian/obsidian-toggle-list/data.json`
+
 
 ## ~~Advanced setup~~ Other things to make it beautiful
 
