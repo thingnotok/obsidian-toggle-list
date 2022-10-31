@@ -342,14 +342,31 @@ function add_state_group_setting(container: ToggleListSettingTab, settings: Togg
 		addSetupUI(container, settings.setup_list[i]);
 	}
 
-	new Setting(container.containerEl).addButton((cb) => {
-		cb.setButtonText("Add new States Group")
+	let last = new Setting(container.containerEl).addButton((cb) => {
+		cb.setButtonText("+ State Group")
 			.setCta()
 			.onClick(() => {
 				// console.log(container.plugin.settings)
-				const idx = Math.floor(Math.random() * 2);
 				settings = container.plugin.settings
+				// Randomly add a state group from default
+				const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
 				settings.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));
+				update_list_indexs(settings.setup_list)
+				container.plugin.saveSettings();
+				register_actions(container.plugin);
+				// Force refresh
+				container.display();
+			});
+	});
+	last.addButton((cb) => {
+		cb.setButtonText("↻ Reset")
+			.setCta()
+			.onClick(() => {
+				console.log("Reset")
+				settings = container.plugin.settings
+				settings.setup_list.length = 0 // Empty setup lists
+				for (let i = 0; i < DEFAULT_STATEGROUP.length; i++)
+					settings.setup_list.push(new Setup(DEFAULT_STATEGROUP[i]));
 				update_list_indexs(settings.setup_list)
 				container.plugin.saveSettings();
 				register_actions(container.plugin);
