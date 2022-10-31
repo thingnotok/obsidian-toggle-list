@@ -251,8 +251,8 @@ function registerActions(plugin: ToggleList) {
 }
 
 function unregistActions(plugin: ToggleList, sg: Setup) {
-	console.log(sg)
-	console.log(sg.cmd_list)
+	// console.log(sg)
+	// console.log(sg.cmd_list)
 	sg.cmd_list.forEach(name => {
 		deleteObsidianCommand(this.app, `obsidian-toggle-list:${name}`)
 	})
@@ -260,13 +260,13 @@ function unregistActions(plugin: ToggleList, sg: Setup) {
 
 function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	const index = setup.index;
-	console.log("Remove index " + index + " From list")
-	console.log(plugin.settings.setup_list)
-	console.log("New List")
+	// console.log("Remove index " + index + " From list")
+	// console.log(plugin.settings.setup_list)
+	// console.log("New List")
 	let sg = plugin.settings.setup_list.splice(index, 1)[0];
-	console.log(plugin.settings.setup_list)
-	console.log("With sg popout")
-	console.log(sg)
+	// console.log(plugin.settings.setup_list)
+	// console.log("With sg popout")
+	// console.log(sg)
 	unregistActions(plugin, sg)
 	plugin.saveSettings();
 	// registerActions(plugin)
