@@ -1,6 +1,6 @@
 # ToggleList for Obsidian
 
-This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the default behavior of toggle checkbox status. Alos it offers a simple way to toggle into frequently used attributes: task states, task tags, highlighted list, etc.
+This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the default behavior of toggle checkbox status. Alos, it offers a simple way to toggle through frequently used attributes: task states, task tags, highlighted list, etc.
 
 ## What this plugin does?
 
