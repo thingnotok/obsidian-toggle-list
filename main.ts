@@ -220,9 +220,7 @@ function updateSettingStates(setup: Setup) {
 	setup.all_states = setup.states.join('\n')
 	const ori_states = setup.states
 	setup.states_dict = new Map();
-	for (let i = 0; i < ori_states.length; i++) {
-		setup.states_dict.set(ori_states[i], i)
-	}
+	ori_states.forEach((os, idx) => setup.states_dict.set(os, idx))
 	setup.sorteds = ori_states.slice(0)
 	setup.sorteds = setup.sorteds.sort((a: string, b: string) => b.length - a.length);
 	// console.log('end:updateSettingStates');
@@ -231,10 +229,7 @@ function updateSettingStates(setup: Setup) {
 }
 
 function registerActions(plugin: ToggleList) {
-	// console.log('Register Command')
-	let setup_list = plugin.settings.setup_list
-	for (let i = 0; i < setup_list.length; i++) {
-		const setup = setup_list[i]
+	plugin.settings.setup_list.forEach(setup => {
 		const n_name = ' [' + setup.index.toString() + ']-Next'
 		const p_name = ' [' + setup.index.toString() + ']-Prev'
 		setup.cmd_list = [n_name, p_name]
@@ -252,23 +247,28 @@ function registerActions(plugin: ToggleList) {
 				toggleAction(editor, view, setup, -1)
 			},
 		});
-		// console.log(setup.cmd_list)
-	}
-	// console.log('-------------------')
+	})
 }
 
 function unregistActions(plugin: ToggleList, sg: Setup) {
-	for (let i = 0; i < sg.cmd_list.length; i++) {
-		const name = sg.cmd_list[i]
+	console.log(sg)
+	console.log(sg.cmd_list)
+	sg.cmd_list.forEach(name => {
 		deleteObsidianCommand(this.app, `obsidian-toggle-list:${name}`)
-	}
+	})
 }
 
 function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	const index = setup.index;
+	console.log("Remove index " + index + " From list")
+	console.log(plugin.settings.setup_list)
+	console.log("New List")
 	let sg = plugin.settings.setup_list.splice(index, 1)[0];
-	plugin.saveSettings();
+	console.log(plugin.settings.setup_list)
+	console.log("With sg popout")
+	console.log(sg)
 	unregistActions(plugin, sg)
+	plugin.saveSettings();
 	// registerActions(plugin)
 }
 
@@ -299,8 +299,7 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 }
 
 function updateListIndexs(setup_list: Array<Setup>): void {
-	for (let i = 0; i < setup_list.length; i++)
-		setup_list[i].index = i;
+	setup_list.forEach((setup, idx) => setup.index = idx)
 }
 
 function reloadSetting(container: ToggleListSettingTab, settings: ToggleListSettings) {
@@ -314,14 +313,15 @@ function reloadSetting(container: ToggleListSettingTab, settings: ToggleListSett
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	const setup_list = settings.setup_list
 	// Add setup UI for each state group
-	for (let i = 0; i < setup_list.length; i++) {
-		addSetupUI(container, settings.setup_list[i]);
-	}
+	settings.setup_list.forEach(setup => {
+		addSetupUI(container, setup);
+	})
 	// Button: Add a new state group
 	const other = new Setting(container.containerEl).addButton((cb) => {
 		cb.setButtonText("+ State Group")
 			.setCta()
 			.onClick(() => {
+				console.log("ToggleList: + State Group")
 				// console.log(container.plugin.settings)
 				settings = container.plugin.settings
 				// Randomly add a state group from default
@@ -335,7 +335,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		cb.setButtonText("🔥 Hotkeys")
 			.setCta()
 			.onClick(() => {
-				console.log("go to hotkey panel")
+				console.log("ToggleList: go to hotkey panel")
 				this.app.setting.openTabById("hotkeys").setQuery("ToggleList")
 			});
 	});
@@ -344,11 +344,14 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		cb.setButtonText("↻ Reset")
 			.setCta()
 			.onClick(() => {
-				console.log("Toggle List Reset")
+				console.log("ToggleList: Reset")
 				settings = container.plugin.settings
-				settings.setup_list.length = 0 // Empty setup lists
-				for (let i = 0; i < DEFAULT_STATEGROUP.length; i++)
-					settings.setup_list.push(new Setup(DEFAULT_STATEGROUP[i]));
+				// Empty setup lists
+				settings.setup_list.forEach(e => unregistActions(container.plugin, e))
+				settings.setup_list = []
+				DEFAULT_STATEGROUP.forEach(e => {
+					settings.setup_list.push(new Setup(e));
+				})
 				reloadSetting(container, settings)
 			});
 	});
@@ -379,10 +382,15 @@ export default class ToggleList extends Plugin {
 
 	// }
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		for (let i = 0; i < this.settings.setup_list.length; i++) {
-			updateSettingStates(this.settings.setup_list[i])
+		this.settings = Object.assign({}, await this.loadData());
+		if (!this.settings.setup_list) {
+			console.log("ToggleList: Create default setups")
+			this.settings.setup_list = []
+			DEFAULT_STATEGROUP.forEach(e => {
+				this.settings.setup_list.push(new Setup(e));
+			})
 		}
+		this.settings.setup_list.forEach(s => updateSettingStates(s))
 	}
 
 	async saveSettings() {
