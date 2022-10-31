@@ -9,19 +9,32 @@ function getTasksSuffix() {
 	return " ✅ " + getDate()
 }
 const SUR_DICT = new Map([
-	['tasks-today', getTasksSuffix],
+	['{tasks-today}', getTasksSuffix],
 ]);
 
+const REG_DICT = [
+	{ rule: /{tasks-today}/, pattern: "✅ [0-9]{4}-[0-9]{2}-[0-9]{2}" }
+]
+
 const DEFAULT_STATEGROUP = [
-	['- ',
+	[
+		'- ',
 		'- [ ] ',
 		'- [x] || {tasks-today}',
-		'',],
-	['- ? ',
+		'',
+	],
+	[
+		'- [ ] ',
+		'- [ ] #p1 ',
+		'- [ ] #p2 ',
+		'- [ ] #p3 ',
+	],
+	[
+		'- ',
+		'- ? ',
 		'- ! ',
 		'- ~ ',
-		'- ',
-		'',]
+	]
 ]
 
 const EMPTY_STATES = Array<string>()
@@ -30,7 +43,7 @@ class Setup {
 	index: number;
 	states: Array<string>;
 	sorteds: Array<string>;
-	states_dict: Map<string, number>;
+	states_dict: Map<number, number>;
 	all_states: string;
 	cmd_list: Array<string>;
 	constructor(STATES: Array<string>) {
@@ -95,8 +108,9 @@ function numberOfTabs(text: string) {
 	return count;
 }
 
+
 function parseSuffix(text: string) {
-	const regex = /\{(.*)\}/;
+	const regex = /(\{.*\})/;
 	const ff = text.match(regex);
 	const found = ff || [];
 	let suffix = text
@@ -107,26 +121,38 @@ function parseSuffix(text: string) {
 }
 
 function ChangeState(text: string, prev: Array<string>, next: Array<string>) {
-	// console.log("origin text: " + text)
-	const prev_sur = parseSuffix(prev[1])
-	const tmp = text.slice(prev[0].length, text.length - prev_sur.length)
-	// console.log("raw text: " + tmp)
 	const pre = next[0] || ""
 	const sur = parseSuffix(next[1]) || ""
-	return pre + tmp + sur
+	return pre + text + sur
 }
 
-function getCurrentState(text: string, states: Array<string>): string {
-	// console.log('InputText=' + text)
+function getRegExp(text: string) {
+	let t = text || ""
+	t = t.replace(/([\[,\],\?])/g, "\\$1")
+	for (let i = 0; i < REG_DICT.length; i++)
+		t = t.replace(REG_DICT[i].rule, REG_DICT[i].pattern)
+	return t
+}
+
+function getCurrentState(text: string, states: Array<string>) {
+	console.log('Using:' + states)
 	for (let i = 0; i < states.length; i++) {
-		const s = states[i].split('||')[0];
-		// console.log('Compare=' + text.slice(0, s.length) + ',and,' + s)
-		if (text.slice(0, s.length) == s) {
-			// console.log('Matched')
-			return states[i]
+		console.log('Current:' + states[i])
+		const s = states[i].split('||');
+		const prefix = getRegExp(s[0])
+		const suffix = getRegExp(s[1])
+		console.log(prefix)
+		console.log(suffix)
+		let state_regex = new RegExp(`^${prefix}(.*)${suffix}$`);
+		console.log(state_regex)
+		const result = text.match(state_regex) || []
+		if (result.length > 0) {
+			console.log("MatchedResult:" + i + "<>" + result)
+			console.log(result)
+			return { sorted_idx: i, raw: result[1] }
 		}
 	}
-	return ''
+	return { sorted_idx: -1, raw: "" }
 }
 
 function separatePreSur(state: string): Array<string> {
@@ -145,22 +171,24 @@ function roundAdd(a: number, b: number, low: number, high: number): number {
 }
 
 function processOneLine(text: string, setup: Setup, direction: number) {
+	console.log(setup)
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
-	const cur_state = getCurrentState(noident_text, setup.sorteds);
-	const cur_idx = setup.states_dict.get(cur_state) || 0;
+	const cur_match = getCurrentState(noident_text, setup.sorteds);
+	if (cur_match.sorted_idx < 0) {
+		return { content: text, offset: 0 }
+	}
+	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
-	// console.log('Current State')
-	// console.log(cur_pair)
-	// console.log('Next State')
-	// console.log(next_pair)
-	let new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_pair, next_pair)
-	// console.log('Curent state:' + cur_state + '"')
-	// console.log('State=' + cur_state + '=>' + next_state)
-	// console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
-	// console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
+	console.log('Current State')
+	console.log(cur_pair)
+	console.log('Next State')
+	console.log(next_pair)
+	let new_text = '\t'.repeat(idents) + ChangeState(cur_match.raw, cur_pair, next_pair)
+	console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
+	console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
 	return { content: new_text, offset: next_pair[0].length - cur_pair[0].length }
 }
 
@@ -219,10 +247,14 @@ function updateSettingStates(setup: Setup) {
 	// console.log(setup.states);
 	setup.all_states = setup.states.join('\n')
 	const ori_states = setup.states
-	setup.states_dict = new Map();
-	ori_states.forEach((os, idx) => setup.states_dict.set(os, idx))
+	// setup.states_dict = new Map();
+	const tmp = new Map();
+	const new_tmp = new Map();
+	ori_states.forEach((os, idx) => tmp.set(os, idx))
 	setup.sorteds = ori_states.slice(0)
 	setup.sorteds = setup.sorteds.sort((a: string, b: string) => b.length - a.length);
+	setup.sorteds.forEach((ss, idx) => new_tmp.set(idx, tmp.get(ss)))
+	setup.states_dict = new_tmp;
 	// console.log('end:updateSettingStates');
 	// console.log(setup)
 	// console.log('--------')
@@ -392,6 +424,9 @@ export default class ToggleList extends Plugin {
 			})
 			updateListIndexs(this.settings.setup_list)
 			this.saveSettings();
+		}
+		else {
+			this.settings.setup_list.forEach(setup => updateSettingStates(setup))
 		}
 	}
 
