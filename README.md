@@ -19,10 +19,10 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 	- Elevate list state to a prefix and suffix pair can achieve much more
 	- Scanarios:
 		- Work with Tasks Plugin:
-			- by adding {tasks-today} as suffix in done state, this plugin can support [Tasks plugin](https://github.com/obsidian-tasks-group/obsidian-tasks). You can toggle a line through paragraph/list/todo/done while keeping Tasks's task attributes. Also you can have multiline support.
+			- by adding {tasks-today} as suffix in done state, this plugin can support [Tasks plugin](https://github.com/obsidian-tasks-group/obsidian-tasks). You can toggle a line through paragraph/list/todo/done while keeping task attributes. Also you can have multiline support.
 			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_tasks.png" width="440"> 
 		- GTD task organize:
-			- by adding category/location/tags as todo prefix/surfix, you can toggle through frequent with single hotkey.
+			- by adding category/location/tags as todo prefix/surfix, you can toggle through frequent catogories with single hotkey.
 			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_gtd.png" width="440"> 
 		- Work with List Callouts
 			- Use [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) to highlight your customized list states and use togglelist jump to states.
