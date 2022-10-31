@@ -1,11 +1,28 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
 // Remember to rename these classes and interfaces!
+function getDate() {
+	// Return Date in YYYY-MM-DD format.
+	return new Date().toJSON().slice(0, 10)
+}
+function getTasksSuffix() {
+	return " ✅ " + getDate()
+}
+const SUR_DICT = new Map([
+	['tasks-today', getTasksSuffix],
+]);
 
-const DEFAULT_STATES = ['- ',
-	'- [ ] ',
-	'- [/] ',
-	'',]
+const DEFAULT_STATEGROUP = [
+	['- ',
+		'- [ ] ',
+		'- [x] || {tasks-today}',
+		'',],
+	['- ? ',
+		'- ! ',
+		'- ~ ',
+		'- ',
+		'',]
+]
 
 const EMPTY_STATES = Array<string>()
 
@@ -38,16 +55,24 @@ class ToggleListSettingTab extends PluginSettingTab {
 		this.containerEl.empty();
 		let settings = this.plugin.settings
 		// console.log("Redraw UI")
-		this.containerEl.createEl('h3', { text: 'Setup The States to Toggle' })
+		this.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
 		update_list_indexs(this.plugin.settings.setup_list)
 		add_state_group_setting(this, settings);
-
-		this.containerEl.createEl('p', { text: 'All states are concatenated with \n in "States"' });
-		this.containerEl.createEl('p', { text: 'You can add/delete states directly in "States" Field' });
-		this.containerEl.createEl('p', { text: 'States entries in settings will refresh after reopen.' });
-		this.containerEl.createEl('p', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
-		this.containerEl.createEl('p', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
-		this.containerEl.createEl('p', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next' });
+		this.containerEl.createEl('h2', { text: 'Basic Usage' });
+		this.containerEl.createEl('li', { text: 'All states are concatenated with \n in "States"' });
+		this.containerEl.createEl('li', { text: 'You can add/delete states directly in "States" Field' });
+		this.containerEl.createEl('li', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
+		this.containerEl.createEl('h2', { text: 'Use with Suffix (support Tasks Plugin!)' });
+		this.containerEl.createEl('li', { text: 'States including "||" will be separated into prefix and suffix' });
+		this.containerEl.createEl('li', { text: 'Line{raw} will be decorated in form of "{prefix}{raw}{suffix}"' });
+		this.containerEl.createEl('li', { text: 'Special type of suffix like "{tasks-today}" can be useful with Tasks Plugin' });
+		this.containerEl.createEl('h2', { text: 'Rendering and Hotkey' });
+		this.containerEl.createEl('li', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
+		this.containerEl.createEl('li', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next[index]' });
+		this.containerEl.createEl('li', { text: '(also you can add hotkey (Cmd/Ctrl + Shift + Enter) to action ToggleList-Prev[index] to toggle with reverse order' });
+		this.containerEl.createEl('h2', { text: 'Multiple State Groups' });
+		this.containerEl.createEl('li', { text: 'You can add or delete state groups with buttons (x / add new state group)' });
+		this.containerEl.createEl('li', { text: 'Each group can serve different purpose. Default groups demonstate Task management and Note highlighting, respectively.' });
 	}
 }
 
@@ -76,8 +101,6 @@ export default class ToggleList extends Plugin {
 	}
 }
 
-
-
 interface ToggleListSettings {
 	setup_list: Array<Setup>;
 	cmd_list: Array<string>;
@@ -97,44 +120,75 @@ function numberOfTabs(text: string) {
 	return count;
 }
 
-function ChangeState(text: string, prev: string, next: string) {
-	const tmp = text.slice(prev.length)
-	// console.log('Text=' + text)
-	// console.log('Prelen=' + prev.length)
-	// console.log('PureText=' + tmp)
-	return next + tmp
+
+
+function parseSur(text: string) {
+	const regex = /\{(.*)\}/;
+	const ff = text.match(regex);
+	const found = ff || [];
+	let suffix = text
+	if (found.length > 0) {
+		suffix = (SUR_DICT.get(found[1]) || (() => ""))() || suffix;
+	}
+	return suffix
+}
+
+function ChangeState(text: string, prev: Array<string>, next: Array<string>) {
+	// console.log("origin text: " + text)
+	const prev_sur = parseSur(prev[1])
+	const tmp = text.slice(prev[0].length, text.length - prev_sur.length)
+	// console.log("raw text: " + tmp)
+	const pre = next[0] || ""
+	const sur = parseSur(next[1]) || ""
+	return pre + tmp + sur
 }
 
 function getCurrentState(text: string, states: Array<string>): string {
 	// console.log('InputText=' + text)
 	for (let i = 0; i < states.length; i++) {
-		const s = states[i];
+		const s = states[i].split('||')[0];
 		// console.log('Compare=' + text.slice(0, s.length) + ',and,' + s)
 		if (text.slice(0, s.length) == s) {
 			// console.log('Matched')
-			return s
+			return states[i]
 		}
 	}
 	return ''
+}
+
+function separatePreSur(state: string): Array<string> {
+	const strings = state.split('||')
+	strings.push('')
+	return strings
+}
+
+function round_add(a: number, b: number, low: number, high: number): number {
+	let result = a + b;
+	if (result == high)
+		result = low;
+	if (result < low)
+		result = high - 1;
+	return result
 }
 
 function processOneLine(text: string, setup: Setup, direction: number) {
 	const idents = numberOfTabs(text);
 	const noident_text = text.slice(idents);
 	const cur_state = getCurrentState(noident_text, setup.sorteds);
-	// console.log(setup)
 	const cur_idx = setup.states_dict.get(cur_state) || 0;
-	let next_idx = cur_idx + direction;
-	if (next_idx == setup.states.length)
-		next_idx = 0;
-	if (next_idx < 0)
-		next_idx = setup.states.length - 1;
-	const next_state = setup.states[next_idx]
-	const new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_state, next_state)
+	const next_idx = round_add(cur_idx, direction, 0, setup.states.length)
+	const cur_pair = separatePreSur(setup.states[cur_idx])
+	const next_pair = separatePreSur(setup.states[next_idx])
+	// console.log('Current State')
+	// console.log(cur_pair)
+	// console.log('Next State')
+	// console.log(next_pair)
+	let new_text = '\t'.repeat(idents) + ChangeState(noident_text, cur_pair, next_pair)
 	// console.log('Curent state:' + cur_state + '"')
 	// console.log('State=' + cur_state + '=>' + next_state)
-	// console.log('LengthChangeFrom=' + cur_state.length + "=To=" + next_state.length)
-	return { content: new_text, offset: next_state.length - cur_state.length }
+	// console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
+	// console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
+	return { content: new_text, offset: next_pair[0].length - cur_pair[0].length }
 }
 
 function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, direction: number) {
@@ -249,6 +303,12 @@ function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	// register_actions(plugin)
 }
 
+function getStateFromText(setup: Setup, text_value: string) {
+	setup.all_states = text_value;
+	setup.states = text_value.split('\n')
+	updateSettingStates(setup);
+}
+
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	// console.log('Add new setup ui')
 	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
@@ -262,11 +322,9 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	});
 	sg_ui.setName('State Group: ' + setup.index.toString())
 		.addTextArea(text => text.setValue(setup.all_states)
-			.onChange(async (value) => {
-				setup.all_states = value;
-				setup.states = value.split('\n')
+			.onChange(async (text_value) => {
+				getStateFromText(setup, text_value)
 				await container.plugin.saveSettings();
-				updateSettingStates(setup);
 			}
 			));
 }
@@ -289,9 +347,9 @@ function add_state_group_setting(container: ToggleListSettingTab, settings: Togg
 			.setCta()
 			.onClick(() => {
 				// console.log(container.plugin.settings)
+				const idx = Math.floor(Math.random() * 2);
 				settings = container.plugin.settings
-				const new_setup = new Setup(DEFAULT_STATES);
-				settings.setup_list.push(new_setup);
+				settings.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));
 				update_list_indexs(settings.setup_list)
 				container.plugin.saveSettings();
 				register_actions(container.plugin);
