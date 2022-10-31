@@ -25,7 +25,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 			- by adding category/location/tags as todo prefix/surfix, you can toggle through frequent catogories with single hotkey.
 			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_gtd.png" width="440"> 
 		- Work with List Callouts
-			- Use [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) to highlight your customized list states and use togglelist jump to states.
+			- Use [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) to highlight your customized list states and use togglelist to jump between states.
 			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_listcallout.png" width="440"> 
 		
 
