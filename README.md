@@ -20,6 +20,7 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 	- Scanarios:
 		- Work with Tasks Plugin:
 			- by adding {tasks-today} as suffix in done state, this plugin can support [Tasks plugin](https://github.com/obsidian-tasks-group/obsidian-tasks). You can toggle a line through paragraph/list/todo/done while keeping Tasks's task attributes. Also you can have multiline support.
+			<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_withtasks.png" width="300"> 
 		- GTD task organize:
 			- by adding category/location/tags as suffix, you can toggle through frequent with single hotkey.
 		
@@ -29,11 +30,11 @@ This is a simple plugin for Obsidian (https://obsidian.md) to overwrite the defa
 	- Rendering for customized task state or tags
 		- check this discussion: [Creating tasks that have three possible states instead of two](https://forum.obsidian.md/t/creating-tasks-that-have-three-possible-states-instead-of-two/24105/2)
 		- Minimal themes supports many task states, check [advance setup](###advanced-setup-other-things-to-make-it-beautiful)
-	<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_withtasks.png" width="300"> 
+
 
 	- Rendering for customized list state
 		- Use [List Callouots](https://github.com/mgmeyers/obsidian-list-callouts) to highlight your customized list states and use togglelist jump to states.
-	<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_withlistcallout.png" width="300"> 
+		<img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_withlistcallout.png" width="300"> 
 
 	- [Dataview Queries](https://github.com/blacksmithgu/obsidian-dataview)
 
