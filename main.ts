@@ -229,6 +229,7 @@ function updateSettingStates(setup: Setup) {
 }
 
 function registerActions(plugin: ToggleList) {
+	console.log(plugin.settings.setup_list)
 	plugin.settings.setup_list.forEach(setup => {
 		const n_name = ' [' + setup.index.toString() + ']-Next'
 		const p_name = ' [' + setup.index.toString() + ']-Prev'
@@ -389,8 +390,9 @@ export default class ToggleList extends Plugin {
 			DEFAULT_STATEGROUP.forEach(e => {
 				this.settings.setup_list.push(new Setup(e));
 			})
+			updateListIndexs(this.settings.setup_list)
+			this.saveSettings();
 		}
-		this.settings.setup_list.forEach(s => updateSettingStates(s))
 	}
 
 	async saveSettings() {
