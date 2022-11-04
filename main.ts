@@ -105,6 +105,7 @@ function numberOfTabs(text: string) {
 	while (text.charAt(index++) === "\t") {
 		count++;
 	}
+	// console.log(`Idents found: ${count}`)
 	return count;
 }
 
@@ -141,15 +142,16 @@ function getCurrentState(text: string, states: Array<string>) {
 		const s = states[i].split('||');
 		const prefix = getRegExp(s[0])
 		const suffix = getRegExp(s[1])
-		// console.log(prefix)
-		// console.log(suffix)
-		let state_regex = new RegExp(`^${prefix}(.*)${suffix}$`);
-		// console.log(state_regex)
+		// console.log("ToggleList-Prefix:" + prefix)
+		// console.log("ToggleList-Suffix:" + suffix)
+		let state_regex = new RegExp(`^(\\s*)${prefix}(.*)${suffix}$`);
+		// console.log("Current:" + state_regex)
+		// console.log("Current:" + text)
 		const result = text.match(state_regex) || []
+		// console.log(result)
 		if (result.length > 0) {
-			// console.log("MatchedResult:" + i + "<>" + result)
-			// console.log(result)
-			return { sorted_idx: i, raw: result[1] }
+			// console.log(`MatchedResult:<${result[2]}##${states[i]}>`)
+			return { sorted_idx: i, raw: result[2], idents: result[1] }
 		}
 	}
 	return { sorted_idx: -1, raw: "" }
@@ -172,9 +174,11 @@ function roundAdd(a: number, b: number, low: number, high: number): number {
 
 function processOneLine(text: string, setup: Setup, direction: number) {
 	// console.log(setup)
-	const idents = numberOfTabs(text);
-	const noident_text = text.slice(idents);
-	const cur_match = getCurrentState(noident_text, setup.sorteds);
+	// const idents = numberOfTabs(text);
+	// const noident_text = text.slice(idents);
+	// const idents = 0
+	// const origin_len = text.length
+	const cur_match = getCurrentState(text, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
 		return { content: text, offset: 0 }
 	}
@@ -182,14 +186,16 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
-	// console.log('Current State')
-	// console.log(cur_pair)
-	// console.log('Next State')
-	// console.log(next_pair)
-	let new_text = '\t'.repeat(idents) + ChangeState(cur_match.raw, cur_pair, next_pair)
+	// console.log(`Current State=${cur_pair}`)
+	// console.log(`Next State=${next_pair}`)
+	// console.log(cur_match)
+	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
+	const offset = next_pair[0].length - cur_pair[0].length
+	// console.log("next-text=" + new_text)
 	// console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
 	// console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
-	return { content: new_text, offset: next_pair[0].length - cur_pair[0].length }
+	// console.log(`Offset=${offset}`)
+	return { content: new_text, offset: offset }
 }
 
 function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, direction: number) {
@@ -216,21 +222,29 @@ function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, directio
 		const r = processOneLine(origin, setup, direction);
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
+
 		if (i == cursor.line) {
-			cursor.ch = cursor.ch + r.offset;
+			if (cursor.ch < -r.offset)
+				cursor.ch = 0;
+			else if (cursor.ch + r.offset > r.content.length)
+				cursor.ch = r.content.length
+			else
+				cursor.ch = cursor.ch + r.offset;
+			// console.log("Cursor=" + cursor.ch)
 		}
-		// console.log("Processing=" + i + "=[" + start_line + "=]" + end_line)
 		if (i == head) {
-			// console.log('head with=' + r.offset)
 			if (selection.head.ch < -r.offset)
 				selection.head.ch = 0;
+			else if (selection.head.ch + r.offset > r.content.length)
+				selection.head.ch = r.content.length;
 			else
 				selection.head.ch = selection.head.ch + r.offset;
 		}
 		if (i == anchor) {
-			// console.log('anchor with=' + r.offset)
 			if (selection.anchor.ch < -r.offset)
 				selection.anchor.ch = 0;
+			else if (selection.anchor.ch + r.offset > r.content.length)
+				selection.anchor.ch = r.content.length
 			else
 				selection.anchor.ch = selection.anchor.ch + r.offset;
 		}
