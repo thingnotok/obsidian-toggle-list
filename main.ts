@@ -45,11 +45,9 @@ class Setup {
 	sorteds: Array<string>;
 	states_dict: Map<number, number>;
 	all_states: string;
-	cmd_list: Array<string>;
 	constructor(STATES: Array<string>) {
 		this.index = 0;
 		this.states = STATES;
-		this.cmd_list = new Array<string>;
 		updateSettingStates(this);
 	}
 }
@@ -89,15 +87,16 @@ class ToggleListSettingTab extends PluginSettingTab {
 	}
 }
 
-interface ToggleListSettings {
-	setup_list: Array<Setup>;
-	cmd_list: Array<string>;
+class Command {
+	index: number;
+	bindings: Array<number>;
 }
 
-const DEFAULT_SETTINGS: ToggleListSettings = {
-	setup_list: [],
-	cmd_list: []
+interface ToggleListSettings {
+	setup_list: Array<Setup>;
+	cmd_list: Array<Command>;
 }
+
 
 function numberOfTabs(text: string) {
 	let count = 0;
@@ -180,7 +179,7 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	// const origin_len = text.length
 	const cur_match = getCurrentState(text, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
-		return { content: text, offset: 0 }
+		return { success: false, content: text, offset: 0 }
 	}
 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
@@ -195,10 +194,10 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	// console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
 	// console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
 	// console.log(`Offset=${offset}`)
-	return { content: new_text, offset: offset }
+	return { success: true, content: new_text, offset: offset }
 }
 
-function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, direction: number) {
+function toggleAction(editor: Editor, view: MarkdownView, sg_list: Setup[], bindings: number[], direction: number) {
 	// console.log('action')
 	// console.log(setup)
 	let selection = editor.listSelections()[0];
@@ -218,8 +217,17 @@ function toggleAction(editor: Editor, view: MarkdownView, setup: Setup, directio
 	}
 	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		// console.log("Origin=" + origin)
-		const r = processOneLine(origin, setup, direction);
+		console.log("bindings=" + bindings)
+		let r = { success: false, content: origin, offset: 0 }
+		for (let i = 0; i < bindings.length; i++) {
+			console.log("bindins:" + i)
+			r = processOneLine(origin, sg_list[bindings[i]], direction);
+			console.log(sg_list[bindings[i]])
+			console.log(r)
+			if (r.success)
+				break;
+		}
+		console.log(r)
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 
@@ -276,33 +284,32 @@ function updateSettingStates(setup: Setup) {
 
 function registerActions(plugin: ToggleList) {
 	// console.log(plugin.settings.setup_list)
-	plugin.settings.setup_list.forEach(setup => {
-		const n_name = ' [' + setup.index.toString() + ']-Next'
-		const p_name = ' [' + setup.index.toString() + ']-Prev'
-		setup.cmd_list = [n_name, p_name]
+	const sg_list = plugin.settings.setup_list
+	plugin.settings.cmd_list.forEach(cmd => {
+		const n_name = ' [' + cmd.index.toString() + ']-Next'
+		const p_name = ' [' + cmd.index.toString() + ']-Prev'
 		plugin.addCommand({
 			id: n_name,
 			name: n_name,
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, setup, 1)
+				toggleAction(editor, view, sg_list, cmd.bindings, 1)
 			},
 		});
 		plugin.addCommand({
 			id: p_name,
 			name: p_name,
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, setup, -1)
+				toggleAction(editor, view, sg_list, cmd.bindings, -1)
 			},
 		});
 	})
 }
 
-function unregistActions(plugin: ToggleList, sg: Setup) {
-	// console.log(sg)
-	// console.log(sg.cmd_list)
-	sg.cmd_list.forEach(name => {
-		deleteObsidianCommand(this.app, `obsidian-toggle-list:${name}`)
-	})
+function unregistActions(plugin: ToggleList, cmd: Command) {
+	console.log('unregisterCommand')
+	console.log(`obsidian-toggle-list: [${cmd.index.toString()}-Next`)
+	deleteObsidianCommand(this.app, `obsidian-toggle-list: [${cmd.index.toString()}]-Next`)
+	deleteObsidianCommand(this.app, `obsidian-toggle-list: [${cmd.index.toString()}]-Prev`)
 }
 
 function removeStateGroup(plugin: ToggleList, setup: Setup) {
@@ -314,7 +321,6 @@ function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	// console.log(plugin.settings.setup_list)
 	// console.log("With sg popout")
 	// console.log(sg)
-	unregistActions(plugin, sg)
 	plugin.saveSettings();
 	// registerActions(plugin)
 }
@@ -357,6 +363,7 @@ function reloadSetting(container: ToggleListSettingTab, settings: ToggleListSett
 	container.display();
 }
 
+
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	const setup_list = settings.setup_list
 	// Add setup UI for each state group
@@ -364,7 +371,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		addSetupUI(container, setup);
 	})
 	// Button: Add a new state group
-	const other = new Setting(container.containerEl).addButton((cb) => {
+	const aa = new Setting(container.containerEl).addButton((cb) => {
 		cb.setButtonText("+ State Group")
 			.setCta()
 			.onClick(() => {
@@ -377,6 +384,36 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				reloadSetting(container, settings)
 			});
 	});
+	for (let i = 0; i < settings.cmd_list.length; i++) {
+		const cmd_section = new Setting(container.containerEl).setName(`Command-[${i}]`)
+			.addText((cb) => {
+				cb.setValue(settings.cmd_list[i].bindings.map(x => x.toString()).join(","))
+				cb.onChange((value) => {
+					settings.cmd_list[i].bindings = value.split(",").map(x => parseInt(x, 10))
+					container.plugin.saveSettings();
+				})
+			})
+			.addButton((cb) => {
+				cb.setIcon('trash')
+				cb.setCta()
+				cb.onClick(() => {
+					unregistActions(container.plugin, settings.cmd_list[i])
+					settings.cmd_list.splice(i, 1)
+					reloadSetting(container, settings)
+				})
+			})
+	}
+	new Setting(container.containerEl).addButton((cb) => {
+		cb.setIcon('install')
+		cb.setCta()
+		cb.onClick(() => {
+			settings.cmd_list.push({ index: settings.cmd_list.length, bindings: [0] })
+			reloadSetting(container, settings)
+		})
+	})
+
+
+	const other = new Setting(container.containerEl).setName("Other")
 	// Button: goto hotkey setup page for togglelist
 	other.addButton((cb) => {
 		cb.setButtonText("🔥 Hotkeys")
@@ -394,7 +431,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				console.log("ToggleList: Reset")
 				settings = container.plugin.settings
 				// Empty setup lists
-				settings.setup_list.forEach(e => unregistActions(container.plugin, e))
+				settings.cmd_list.forEach(cmd => unregistActions(container.plugin, cmd))
 				settings.setup_list = []
 				DEFAULT_STATEGROUP.forEach(e => {
 					settings.setup_list.push(new Setup(e));
@@ -429,7 +466,9 @@ export default class ToggleList extends Plugin {
 
 	// }
 	async loadSettings() {
+		console.log("Loading settings:")
 		this.settings = Object.assign({}, await this.loadData());
+		console.log(this.settings.cmd_list)
 		if (!this.settings.setup_list) {
 			console.log("ToggleList: Create default setups")
 			this.settings.setup_list = []
@@ -441,6 +480,10 @@ export default class ToggleList extends Plugin {
 		}
 		else {
 			this.settings.setup_list.forEach(setup => updateSettingStates(setup))
+		}
+		if (!this.settings.cmd_list) {
+			this.settings.cmd_list = Array<Command>();
+			this.settings.cmd_list.push({ index: 0, bindings: [0] })
 		}
 	}
 
