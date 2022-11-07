@@ -89,23 +89,14 @@ class ToggleListSettingTab extends PluginSettingTab {
 
 class Command {
 	index: number;
+	name: string;
+	tmp_name: string;
 	bindings: Array<number>;
 }
 
 interface ToggleListSettings {
 	setup_list: Array<Setup>;
 	cmd_list: Array<Command>;
-}
-
-
-function numberOfTabs(text: string) {
-	let count = 0;
-	let index = 0;
-	while (text.charAt(index++) === "\t") {
-		count++;
-	}
-	// console.log(`Idents found: ${count}`)
-	return count;
 }
 
 
@@ -282,34 +273,38 @@ function updateSettingStates(setup: Setup) {
 	// console.log('--------')
 }
 
+function registerAction(plugin: ToggleList, action: Command, sg_list: Array<Setup>) {
+	const n_name = `${action.name}-Next`
+	const p_name = `${action.name}-Prev`
+	plugin.addCommand({
+		id: n_name,
+		name: n_name,
+		editorCallback: (editor: Editor, view: MarkdownView) => {
+			toggleAction(editor, view, sg_list, action.bindings, 1)
+		},
+	});
+	plugin.addCommand({
+		id: p_name,
+		name: p_name,
+		editorCallback: (editor: Editor, view: MarkdownView) => {
+			toggleAction(editor, view, sg_list, action.bindings, -1)
+		},
+	});
+
+}
+
 function registerActions(plugin: ToggleList) {
-	// console.log(plugin.settings.setup_list)
 	const sg_list = plugin.settings.setup_list
 	plugin.settings.cmd_list.forEach(cmd => {
-		const n_name = ' [' + cmd.index.toString() + ']-Next'
-		const p_name = ' [' + cmd.index.toString() + ']-Prev'
-		plugin.addCommand({
-			id: n_name,
-			name: n_name,
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, sg_list, cmd.bindings, 1)
-			},
-		});
-		plugin.addCommand({
-			id: p_name,
-			name: p_name,
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, sg_list, cmd.bindings, -1)
-			},
-		});
+		registerAction(plugin, cmd, sg_list)
 	})
 }
 
-function unregistActions(plugin: ToggleList, cmd: Command) {
+function unregistAction(plugin: ToggleList, cmd_name: string) {
 	console.log('unregisterCommand')
-	console.log(`obsidian-toggle-list: [${cmd.index.toString()}-Next`)
-	deleteObsidianCommand(this.app, `obsidian-toggle-list: [${cmd.index.toString()}]-Next`)
-	deleteObsidianCommand(this.app, `obsidian-toggle-list: [${cmd.index.toString()}]-Prev`)
+	console.log(`obsidian-toggle-list: ${cmd_name}-Next`)
+	deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd_name}-Next`)
+	deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd_name}-Prev`)
 }
 
 function removeStateGroup(plugin: ToggleList, setup: Setup) {
@@ -322,7 +317,6 @@ function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	// console.log("With sg popout")
 	// console.log(sg)
 	plugin.saveSettings();
-	// registerActions(plugin)
 }
 
 function getStateFromText(setup: Setup, text_value: string) {
@@ -334,7 +328,7 @@ function getStateFromText(setup: Setup, text_value: string) {
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	// console.log('Add new setup ui')
 	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
-		cb.setButtonText("x")
+		cb.setIcon('trash')
 			.setCta()
 			.onClick(() => {
 				removeStateGroup(container.plugin, setup)
@@ -384,30 +378,57 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				reloadSetting(container, settings)
 			});
 	});
-	for (let i = 0; i < settings.cmd_list.length; i++) {
-		const cmd_section = new Setting(container.containerEl).setName(`Command-[${i}]`)
-			.addText((cb) => {
-				cb.setValue(settings.cmd_list[i].bindings.map(x => x.toString()).join(","))
-				cb.onChange((value) => {
-					settings.cmd_list[i].bindings = value.split(",").map(x => parseInt(x, 10))
-					container.plugin.saveSettings();
-				})
-			})
+	const cmd_list = settings.cmd_list;
+	for (let i = 0; i < cmd_list.length; i++) {
+		const cmd_section = new Setting(container.containerEl)
+			.setName(`${cmd_list[i].name}`)
 			.addButton((cb) => {
 				cb.setIcon('trash')
 				cb.setCta()
 				cb.onClick(() => {
-					unregistActions(container.plugin, settings.cmd_list[i])
-					settings.cmd_list.splice(i, 1)
+					unregistAction(container.plugin, cmd_list[i].name)
+					cmd_list.splice(i, 1)
+					reloadSetting(container, settings)
+				})
+			})
+			.addText((cb) => {
+				cb.setValue(
+					cmd_list[i].name
+				)
+				cb.onChange((value) => {
+					cmd_list[i].tmp_name = value
+				})
+			})
+			.addText((cb) => {
+				cb.setValue(
+					cmd_list[i].bindings.map(x => x.toString()).join(",")
+				)
+				cb.onChange((value) => {
+					cmd_list[i].bindings = value.split(",").map(x => parseInt(x, 10))
+					console.log(cmd_list[i].bindings)
+					container.plugin.saveSettings();
+				})
+			})
+			.addButton((cb) => {
+				cb.setIcon('checkmark')
+				cb.setCta()
+				cb.onClick(() => {
+					console.log(cmd_list[i])
+					unregistAction(container.plugin, cmd_list[i].name)
+					cmd_list[i].name = cmd_list[i].tmp_name
+					cmd_list[i].bindings = cmd_list[i].bindings.filter(b => b < setup_list.length);
+					cmd_list[i].bindings = [...new Set(cmd_list[i].bindings)];
+					console.log(cmd_list[i].bindings)
 					reloadSetting(container, settings)
 				})
 			})
 	}
 	new Setting(container.containerEl).addButton((cb) => {
-		cb.setIcon('install')
+		cb.setButtonText('+ Command')
 		cb.setCta()
 		cb.onClick(() => {
-			settings.cmd_list.push({ index: settings.cmd_list.length, bindings: [0] })
+			const name = `Command ${settings.cmd_list.length}`
+			settings.cmd_list.push({ index: settings.cmd_list.length, name: name, tmp_name: name, bindings: [0] })
 			reloadSetting(container, settings)
 		})
 	})
@@ -431,7 +452,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				console.log("ToggleList: Reset")
 				settings = container.plugin.settings
 				// Empty setup lists
-				settings.cmd_list.forEach(cmd => unregistActions(container.plugin, cmd))
+				settings.cmd_list.forEach(cmd => unregistAction(container.plugin, cmd.name))
 				settings.setup_list = []
 				DEFAULT_STATEGROUP.forEach(e => {
 					settings.setup_list.push(new Setup(e));
@@ -483,7 +504,7 @@ export default class ToggleList extends Plugin {
 		}
 		if (!this.settings.cmd_list) {
 			this.settings.cmd_list = Array<Command>();
-			this.settings.cmd_list.push({ index: 0, bindings: [0] })
+			this.settings.cmd_list.push({ index: 0, bindings: [0], name: 'command-0', tmp_name: '' })
 		}
 	}
 
