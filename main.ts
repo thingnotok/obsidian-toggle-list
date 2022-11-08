@@ -30,12 +30,40 @@ const DEFAULT_STATEGROUP = [
 		'- [ ] #p3 ',
 	],
 	[
-		'- ',
 		'- ? ',
 		'- ! ',
 		'- ~ ',
 	]
 ]
+
+const DEFAULT_CMD = [
+	{
+		index: 0,
+		name: 'Task',
+		tmp_name: 'Task',
+		bindings: [0]
+	},
+	{
+		index: 1,
+		name: 'Task Priority',
+		tmp_name: 'Task Priority',
+		bindings: [1]
+	},
+	{
+		index: 2,
+		name: 'Call out',
+		tmp_name: 'Call out',
+		bindings: [2]
+	},
+	{
+		index: 3,
+		name: 'Task + Callout',
+		tmp_name: 'Task + Callout',
+		bindings: [0, 2]
+	}
+
+]
+
 
 const EMPTY_STATES = Array<string>()
 
@@ -66,8 +94,6 @@ class ToggleListSettingTab extends PluginSettingTab {
 		this.containerEl.empty();
 		let settings = this.plugin.settings
 		// console.log("Redraw UI")
-		this.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
-		updateListIndexs(this.plugin.settings.setup_list)
 		addSettingUI(this, settings);
 		this.containerEl.createEl('h2', { text: 'Basic Usage' });
 		this.containerEl.createEl('li', { text: 'All states are concatenated with \n in "States"' });
@@ -76,14 +102,12 @@ class ToggleListSettingTab extends PluginSettingTab {
 		this.containerEl.createEl('h2', { text: 'Use with Suffix (support Tasks Plugin!)' });
 		this.containerEl.createEl('li', { text: 'States including "||" will be separated into prefix and suffix' });
 		this.containerEl.createEl('li', { text: 'Line{raw} will be decorated in form of "{prefix}{raw}{suffix}"' });
-		this.containerEl.createEl('li', { text: 'Special type of suffix like "{tasks-today}" can be useful with Tasks Plugin' });
-		this.containerEl.createEl('h2', { text: 'Rendering and Hotkey' });
-		this.containerEl.createEl('li', { text: 'Non-standard markdown prefix(e.q. - [/]) reqires css setting to make it a bullet-like icon. Or you can find a theme which supports it (like Minimal).' });
-		this.containerEl.createEl('li', { text: 'You may want to replace the hotkey (Cmd/Ctrl + Enter)\'s action from Official Toggle checkbox status to ToggleList-Next[index]' });
-		this.containerEl.createEl('li', { text: '(also you can add hotkey (Cmd/Ctrl + Shift + Enter) to action ToggleList-Prev[index] to toggle with reverse order' });
-		this.containerEl.createEl('h2', { text: 'Multiple State Groups' });
-		this.containerEl.createEl('li', { text: 'You can add or delete state groups with buttons (x / add new state group)' });
-		this.containerEl.createEl('li', { text: 'Each group can serve different purpose. Default groups demonstate Task management and Note highlighting, respectively.' });
+		this.containerEl.createEl('li', { text: '{tasks-today} in suffix will add "✅ YYYY-MM-DD".(for Tasks Plugin)' });
+		this.containerEl.createEl('h2', { text: 'Hotkey' });
+		this.containerEl.createEl('li', { text: 'You can setup the hotkey for each command.' });
+		this.containerEl.createEl('h2', { text: 'Command Binding to multiple groups' });
+		this.containerEl.createEl('li', { text: 'You can bind multiple groups to a command, so you can use single hotkey for multiple purposes based on current line context.' })
+		this.containerEl.createEl('li', { text: 'The order in the binding field specifies the order of groups being matched.' });
 	}
 }
 
@@ -208,17 +232,17 @@ function toggleAction(editor: Editor, view: MarkdownView, sg_list: Setup[], bind
 	}
 	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		console.log("bindings=" + bindings)
+		// console.log("bindings=" + bindings)
 		let r = { success: false, content: origin, offset: 0 }
 		for (let i = 0; i < bindings.length; i++) {
-			console.log("bindins:" + i)
+			// console.log("bindins:" + i)
 			r = processOneLine(origin, sg_list[bindings[i]], direction);
-			console.log(sg_list[bindings[i]])
-			console.log(r)
+			// console.log(sg_list[bindings[i]])
+			// console.log(r)
 			if (r.success)
 				break;
 		}
-		console.log(r)
+		// console.log(r)
 		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 
@@ -301,8 +325,8 @@ function registerActions(plugin: ToggleList) {
 }
 
 function unregistAction(plugin: ToggleList, cmd_name: string) {
-	console.log('unregisterCommand')
-	console.log(`obsidian-toggle-list: ${cmd_name}-Next`)
+	// console.log('unregisterCommand')
+	// console.log(`obsidian-toggle-list: ${cmd_name}-Next`)
 	deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd_name}-Next`)
 	deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd_name}-Prev`)
 }
@@ -358,7 +382,28 @@ function reloadSetting(container: ToggleListSettingTab, settings: ToggleListSett
 }
 
 
+function resetSetting(plugin: ToggleList) {
+	const settings = plugin.settings
+	// Empty setup lists
+	settings.setup_list = []
+	// Add setup_list with default groups
+	DEFAULT_STATEGROUP.forEach(e => {
+		settings.setup_list.push(new Setup(e));
+	})
+	updateListIndexs(settings.setup_list)
+	// Unregister commands
+	settings.cmd_list.forEach(cmd => unregistAction(plugin, cmd.name))
+	// Empty cmd_list
+	settings.cmd_list = []
+	// Add command with default cmds
+	DEFAULT_CMD.forEach(e => {
+		settings.cmd_list.push(e)
+	})
+}
+
+
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
+	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
 	const setup_list = settings.setup_list
 	// Add setup UI for each state group
 	settings.setup_list.forEach(setup => {
@@ -379,9 +424,12 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 			});
 	});
 	const cmd_list = settings.cmd_list;
+	container.containerEl.createEl('h2', { text: 'Bind the Commands with State Groups' })
+	container.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states' })
 	for (let i = 0; i < cmd_list.length; i++) {
 		const cmd_section = new Setting(container.containerEl)
 			.setName(`${cmd_list[i].name}`)
+			.setDesc(`[Command Name] [Binding State Groups]`)
 			.addButton((cb) => {
 				cb.setIcon('trash')
 				cb.setCta()
@@ -395,17 +443,19 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				cb.setValue(
 					cmd_list[i].name
 				)
+				cb.setPlaceholder("Command Name")
 				cb.onChange((value) => {
 					cmd_list[i].tmp_name = value
 				})
 			})
 			.addText((cb) => {
 				cb.setValue(
-					cmd_list[i].bindings.map(x => x.toString()).join(",")
+					cmd_list[i].bindings.map(x => x.toString()).join(", ")
 				)
+				cb.setPlaceholder("Indes of State Groups: 0, 1, 2")
 				cb.onChange((value) => {
 					cmd_list[i].bindings = value.split(",").map(x => parseInt(x, 10))
-					console.log(cmd_list[i].bindings)
+					// console.log(cmd_list[i].bindings)
 					container.plugin.saveSettings();
 				})
 			})
@@ -413,12 +463,12 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				cb.setIcon('checkmark')
 				cb.setCta()
 				cb.onClick(() => {
-					console.log(cmd_list[i])
+					// console.log(cmd_list[i])
 					unregistAction(container.plugin, cmd_list[i].name)
 					cmd_list[i].name = cmd_list[i].tmp_name
 					cmd_list[i].bindings = cmd_list[i].bindings.filter(b => b < setup_list.length);
 					cmd_list[i].bindings = [...new Set(cmd_list[i].bindings)];
-					console.log(cmd_list[i].bindings)
+					// console.log(cmd_list[i].bindings)
 					reloadSetting(container, settings)
 				})
 			})
@@ -433,8 +483,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		})
 	})
 
-
-	const other = new Setting(container.containerEl).setName("Other")
+	const other = new Setting(container.containerEl)
 	// Button: goto hotkey setup page for togglelist
 	other.addButton((cb) => {
 		cb.setButtonText("🔥 Hotkeys")
@@ -448,15 +497,13 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 	other.addButton((cb) => {
 		cb.setButtonText("↻ Reset")
 			.setCta()
-			.onClick(() => {
+			.onClick(async () => {
 				console.log("ToggleList: Reset")
-				settings = container.plugin.settings
-				// Empty setup lists
-				settings.cmd_list.forEach(cmd => unregistAction(container.plugin, cmd.name))
-				settings.setup_list = []
-				DEFAULT_STATEGROUP.forEach(e => {
-					settings.setup_list.push(new Setup(e));
-				})
+				// container.plugin.saveSettings("config.json");
+				const stamp = (new Date()).toISOString()
+				await this.app.vault.writeConfigJson(`plugins/obsidian-toggle-list/backup-${stamp}`, settings)
+				new Notice(`ToggleList: Original config is saved in plugins/obsidian-toggle-list/backup-${stamp}.json`)
+				resetSetting(container.plugin)
 				reloadSetting(container, settings)
 			});
 	});
@@ -487,21 +534,23 @@ export default class ToggleList extends Plugin {
 
 	// }
 	async loadSettings() {
-		console.log("Loading settings:")
+		console.log("ToggleList: Loading settings:")
 		this.settings = Object.assign({}, await this.loadData());
-		console.log(this.settings.cmd_list)
+		// console.log(this.settings.cmd_list)
 		if (!this.settings.setup_list) {
 			console.log("ToggleList: Create default setups")
-			this.settings.setup_list = []
-			DEFAULT_STATEGROUP.forEach(e => {
-				this.settings.setup_list.push(new Setup(e));
-			})
-			updateListIndexs(this.settings.setup_list)
+			resetSetting(this)
+			// this.settings.setup_list = []
+			// DEFAULT_STATEGROUP.forEach(e => {
+			// 	this.settings.setup_list.push(new Setup(e));
+			// })
+			// updateListIndexs(this.settings.setup_list)
 			this.saveSettings();
 		}
 		else {
 			this.settings.setup_list.forEach(setup => updateSettingStates(setup))
 		}
+		// This is for backbard compatibility
 		if (!this.settings.cmd_list) {
 			this.settings.cmd_list = Array<Command>();
 			this.settings.cmd_list.push({ index: 0, bindings: [0], name: 'command-0', tmp_name: '' })
