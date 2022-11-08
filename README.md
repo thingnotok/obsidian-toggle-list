@@ -201,6 +201,15 @@ Toggle behavior of official implementation (Toggle checkbox status, `Cmd`/`Ctrl`
 
 
 ## Changelog
+[1.0.5] - [[2022-11-08]]
+---
+- Toggles
+    - Add support for indentation using spaces.
+- Commands
+    - Add contextual toggles support with same command
+    - Allow user to modify command name
+- Settings
+    - Add a config backup before Reset command
 
 [1.0.3/4] - [[2022-10-31]]
 ---
