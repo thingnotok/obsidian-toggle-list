@@ -392,7 +392,8 @@ function resetSetting(plugin: ToggleList) {
 	})
 	updateListIndexs(settings.setup_list)
 	// Unregister commands
-	settings.cmd_list.forEach(cmd => unregistAction(plugin, cmd.name))
+	if (settings.cmd_list)
+		settings.cmd_list.forEach(cmd => unregistAction(plugin, cmd.name))
 	// Empty cmd_list
 	settings.cmd_list = []
 	// Add command with default cmds
