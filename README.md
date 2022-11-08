@@ -121,17 +121,21 @@ Project Usecase            |  Query Customized Items
 
 	Note that the space after these prefixes is important. You need "- [ ] " to make a checkbox.
 
-3. Set the hotkey `Cmd`/`Ctrl` + `Enter`for this plugin "ToggleList: ToggleList->Next".Since `Cmd`/`Ctrl` + `Enter` hotkey is occupied by the official toggle, you need to deactivate the hotkey of "Toggle checkbox status" first. 
-	- You can also add a hotkey for "ToggleList: ToggleList->Prev" to toggle the states in reverse order.
+3. Set the hotkey for this plugin 
+	- For example, you can use `Cmd`/`Ctrl` + `Enter` for task state group. (you need to deactivate the hotkey of "Toggle checkbox status" first)
 
 
 ## Multiple State Groups
 
 1. You can add/delete state groups in the ToggleList's optiona panel. 
 2. You can setup hotkeys for each state groups in the hotkey panel.
-    - Each state group is associated with two commands: `ToggleList: ToggleList[id]-Next` and `-Prev`
-    - Currently, two command will be added with state group and they won't be remove until app restart.
-		- These commands will have no effect after the state group is removed.
+
+## Commands
+
+1. Change the command name for better recognition.
+2. Bind multiple groups to a single command, so you can use single hotkey and toggle through states based on context (of current line).
+3. Two commands are actually created, `${Command}`-Prev and `${Command}`-Next for one command field. They toggle states in different direction in the states.
+
 
 ## Suffix Support
 
@@ -145,6 +149,7 @@ __This feature may be buggy, I only test it on my own flow. If it doesn't work f
 ## Buttons
 
 - `+ State Group`: Add new state group.
+- `+ Command Group`: Add new state group.
 - `🔥 Hotkeys`: navigate to hotkey setting page for ToggleList commands.
 - `↻ Reset`: clear all the current state groups and replace with default groups. 
 	- The default groups demonstrte all the supported features in the latest release.
