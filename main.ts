@@ -143,28 +143,22 @@ function ChangeState(text: string, prev: Array<string>, next: Array<string>) {
 
 function getRegExp(text: string) {
 	let t = text || ""
-	t = t.replace(/([\[,\],\?])/g, "\\$1")
+	t = t.replace(/([\[,\],\?\$])/g, "\\$1")
 	for (let i = 0; i < REG_DICT.length; i++)
 		t = t.replace(REG_DICT[i].rule, REG_DICT[i].pattern)
 	return t
 }
 
 function getCurrentState(text: string, states: Array<string>) {
-	// console.log('Using:' + states)
 	for (let i = 0; i < states.length; i++) {
-		// console.log('Current:' + states[i])
 		const s = states[i].split('||');
 		const prefix = getRegExp(s[0])
 		const suffix = getRegExp(s[1])
-		// console.log("ToggleList-Prefix:" + prefix)
-		// console.log("ToggleList-Suffix:" + suffix)
+
 		let state_regex = new RegExp(`^(\\s*)${prefix}(.*)${suffix}$`);
-		// console.log("Current:" + state_regex)
-		// console.log("Current:" + text)
 		const result = text.match(state_regex) || []
-		// console.log(result)
+
 		if (result.length > 0) {
-			// console.log(`MatchedResult:<${result[2]}##${states[i]}>`)
 			return { sorted_idx: i, raw: result[2], idents: result[1] }
 		}
 	}
