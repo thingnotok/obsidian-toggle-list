@@ -13,7 +13,7 @@ const SUR_DICT = new Map([
 ]);
 
 const REG_DICT = [
-	{ rule: /{tasks-today}/, pattern: "✅ [0-9]{4}-[0-9]{2}-[0-9]{2}" }
+	{ rule: /\\{tasks-today\\}/, pattern: "✅ [0-9]{4}-[0-9]{2}-[0-9]{2}" }
 ]
 
 const DEFAULT_STATEGROUP = [
@@ -150,6 +150,7 @@ function getRegExp(text: string) {
 }
 
 function getCurrentState(text: string, states: Array<string>) {
+	console.log(states)
 	for (let i = 0; i < states.length; i++) {
 		const s = states[i].split('||');
 		const prefix = getRegExp(s[0])
@@ -157,8 +158,10 @@ function getCurrentState(text: string, states: Array<string>) {
 
 		let state_regex = new RegExp(`^(\\s*)${prefix}(.*)${suffix}$`);
 		const result = text.match(state_regex) || []
-
+		console.log(state_regex)
+		console.log(result)
 		if (result.length > 0) {
+			console.log(`${prefix}::${result[2]}||${suffix}`)
 			return { sorted_idx: i, raw: result[2], idents: result[1] }
 		}
 	}
@@ -297,6 +300,7 @@ function registerAction(plugin: ToggleList, action: Command, sg_list: Array<Setu
 	plugin.addCommand({
 		id: n_name,
 		name: n_name,
+		icon: 'right-arrow',
 		editorCallback: (editor: Editor, view: MarkdownView) => {
 			toggleAction(editor, view, sg_list, action.bindings, 1)
 		},
@@ -304,6 +308,7 @@ function registerAction(plugin: ToggleList, action: Command, sg_list: Array<Setu
 	plugin.addCommand({
 		id: p_name,
 		name: p_name,
+		icon: 'left-arrow',
 		editorCallback: (editor: Editor, view: MarkdownView) => {
 			toggleAction(editor, view, sg_list, action.bindings, -1)
 		},
