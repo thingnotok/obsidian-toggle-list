@@ -143,7 +143,7 @@ function ChangeState(text: string, prev: Array<string>, next: Array<string>) {
 
 function getRegExp(text: string) {
 	let t = text || ""
-	t = t.replace(/([\[,\],\?\$])/g, "\\$1")
+	t = t.replace(/([\.\+\*\?\^\$\(\)\[\]\{\}\|\\])/g, "\\$1")
 	for (let i = 0; i < REG_DICT.length; i++)
 		t = t.replace(REG_DICT[i].rule, REG_DICT[i].pattern)
 	return t
