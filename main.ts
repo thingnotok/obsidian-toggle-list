@@ -150,7 +150,7 @@ function getRegExp(text: string) {
 }
 
 function getCurrentState(text: string, states: Array<string>) {
-	console.log(states)
+	// console.log(states)
 	for (let i = 0; i < states.length; i++) {
 		const s = states[i].split('||');
 		const prefix = getRegExp(s[0])
@@ -158,10 +158,10 @@ function getCurrentState(text: string, states: Array<string>) {
 
 		let state_regex = new RegExp(`^(\\s*)${prefix}(.*)${suffix}$`);
 		const result = text.match(state_regex) || []
-		console.log(state_regex)
-		console.log(result)
+		// console.log(state_regex)
+		// console.log(result)
 		if (result.length > 0) {
-			console.log(`${prefix}::${result[2]}||${suffix}`)
+			// console.log(`${prefix}::${result[2]}||${suffix}`)
 			return { sorted_idx: i, raw: result[2], idents: result[1] }
 		}
 	}
@@ -489,7 +489,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		cb.setButtonText("🔥 Hotkeys")
 			.setCta()
 			.onClick(() => {
-				console.log("ToggleList: go to hotkey panel")
+				// console.log("ToggleList: go to hotkey panel")
 				this.app.setting.openTabById("hotkeys").setQuery("ToggleList")
 			});
 	});
@@ -498,7 +498,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		cb.setButtonText("↻ Reset")
 			.setCta()
 			.onClick(async () => {
-				console.log("ToggleList: Reset")
+				// console.log("ToggleList: Reset")
 				// container.plugin.saveSettings("config.json");
 				const stamp = (new Date()).toISOString()
 				await this.app.vault.writeConfigJson(`plugins/obsidian-toggle-list/backup-${stamp}`, settings)
@@ -538,7 +538,7 @@ export default class ToggleList extends Plugin {
 		this.settings = Object.assign({}, await this.loadData());
 		// console.log(this.settings.cmd_list)
 		if (!this.settings.setup_list) {
-			console.log("ToggleList: Create default setups")
+			// console.log("ToggleList: Create default setups")
 			resetSetting(this)
 			// this.settings.setup_list = []
 			// DEFAULT_STATEGROUP.forEach(e => {
