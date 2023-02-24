@@ -64,7 +64,7 @@ const DEFAULT_CMD = [
 
 ]
 
-
+const EMPTY_TOKEN = '{PARAGRAPH}'
 const EMPTY_STATES = Array<string>()
 
 class Setup {
@@ -342,10 +342,24 @@ function removeStateGroup(plugin: ToggleList, setup: Setup) {
 	plugin.saveSettings();
 }
 
-function getStateFromText(setup: Setup, text_value: string) {
-	setup.all_states = text_value;
-	setup.states = text_value.split('\n')
+function getStateFromText(setup: Setup, rendered_text: string) {
+	const text = rendered_text.replace(EMPTY_TOKEN, "")
+	setup.all_states = text;
+	setup.states = text.split('\n')
 	updateSettingStates(setup);
+}
+
+function renderEmptyLine(text: string): string{
+	const emptyline = EMPTY_TOKEN + '\n'
+	const emptyline_last = '\n'+EMPTY_TOKEN
+	let result = text.replace(/(^\n)/gm, emptyline)
+	result = result.replace(/\n$/gm, emptyline_last)
+	console.log("renderedText")
+	console.log(text)
+	console.log(">")
+	console.log(result)
+	console.log("---")
+	return result
 }
 
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
@@ -359,8 +373,9 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 				container.display();
 			});
 	});
+	const renderedText = renderEmptyLine(setup.all_states)
 	sg_ui.setName('State Group: ' + setup.index.toString())
-		.addTextArea(text => text.setValue(setup.all_states)
+		.addTextArea(text => text.setValue(renderedText)
 			.onChange(async (text_value) => {
 				getStateFromText(setup, text_value)
 				await container.plugin.saveSettings();
