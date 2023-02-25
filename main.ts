@@ -88,24 +88,28 @@ const DEFAULT_STATEGROUP = [
 const DEFAULT_CMD = [
 	{
 		index: 0,
+		pop: false,
 		name: 'Task',
 		tmp_name: 'Task',
 		bindings: [0]
 	},
 	{
 		index: 1,
+		pop: false,
 		name: 'Task Priority',
 		tmp_name: 'Task Priority',
 		bindings: [1]
 	},
 	{
 		index: 2,
+		pop: false,
 		name: 'Call out',
 		tmp_name: 'Call out',
 		bindings: [2]
 	},
 	{
 		index: 3,
+		pop: false,
 		name: 'Task + Callout',
 		tmp_name: 'Task + Callout',
 		bindings: [0, 2]
@@ -148,7 +152,6 @@ class ToggleListSettingTab extends PluginSettingTab {
 		exp.innerHTML= `<button class="togglelist_btn">
 		<a href="https://github.com/thingnotok/obsidian-toggle-list">README</a>
 		</button>`
-
 	}
 }
 
@@ -157,6 +160,7 @@ class Command {
 	name: string;
 	tmp_name: string;
 	bindings: Array<number>;
+	pop: boolean;
 }
 
 interface ToggleListSettings {
@@ -489,6 +493,12 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		const cmd_section = new Setting(container.containerEl)
 			.setName(`${cmd_list[i].name}`)
 			.setDesc(`[Command Name] [Binding State Groups]`)
+			.addToggle((cb) => {
+				cb.setValue(cmd_list[i].pop||false)
+				cb.onChange((value) => {
+					cmd_list[i].pop = value
+				})
+			})
 			.addButton((cb) => {
 				cb.setIcon('trash')
 				cb.setCta()
