@@ -144,19 +144,11 @@ class ToggleListSettingTab extends PluginSettingTab {
 		let settings = this.plugin.settings
 		// console.log("Redraw UI")
 		addSettingUI(this, settings);
-		this.containerEl.createEl('h2', { text: 'Basic Usage' });
-		this.containerEl.createEl('li', { text: 'All states are concatenated with \n in "States"' });
-		this.containerEl.createEl('li', { text: 'You can add/delete states directly in "States" Field' });
-		this.containerEl.createEl('li', { text: 'Leave the state field blank will make the line a "paragraph" in that state' });
-		this.containerEl.createEl('h2', { text: 'Use with Suffix (support Tasks Plugin!)' });
-		this.containerEl.createEl('li', { text: 'States including "||" will be separated into prefix and suffix' });
-		this.containerEl.createEl('li', { text: 'Line{raw} will be decorated in form of "{prefix}{raw}{suffix}"' });
-		this.containerEl.createEl('li', { text: '{tasks-today} in suffix will add "✅ YYYY-MM-DD".(for Tasks Plugin)' });
-		this.containerEl.createEl('h2', { text: 'Hotkey' });
-		this.containerEl.createEl('li', { text: 'You can setup the hotkey for each command.' });
-		this.containerEl.createEl('h2', { text: 'Command Binding to multiple groups' });
-		this.containerEl.createEl('li', { text: 'You can bind multiple groups to a command, so you can use single hotkey for multiple purposes based on current line context.' })
-		this.containerEl.createEl('li', { text: 'The order in the binding field specifies the order of groups being matched.' });
+		const exp = this.containerEl.createEl('div', {cls:'togglelist_div'})
+		exp.innerHTML= `<button class="togglelist_btn">
+		<a href="https://github.com/thingnotok/obsidian-toggle-list">README</a>
+		</button>`
+
 	}
 }
 

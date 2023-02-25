@@ -13,4 +13,6 @@
 .togglelist_theme > path {
     stroke:var(--color-base-60);
 }
-/* state node */
+.togglelist_div {
+    text-align: center;
+}
