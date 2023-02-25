@@ -13,21 +13,11 @@ export default class ToggleList extends Plugin {
 		this.addSettingTab(new ToggleListSettingTab(this.app, this));
 		registerActions(this);
 	}
-	// onunload() {
-
-	// }
 	async loadSettings() {
 		console.log("ToggleList: Loading settings:")
 		this.settings = Object.assign({}, await this.loadData());
-		// console.log(this.settings.cmd_list)
 		if (!this.settings.setup_list) {
-			// console.log("ToggleList: Create default setups")
 			resetSetting(this)
-			// this.settings.setup_list = []
-			// DEFAULT_STATEGROUP.forEach(e => {
-			// 	this.settings.setup_list.push(new Setup(e));
-			// })
-			// updateListIndexs(this.settings.setup_list)
 			this.saveSettings();
 		}
 		else {

@@ -611,7 +611,6 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 	}
 	svg_text += modifySVG(drawDiagram(removeRedundentConnection(text)))
 	const svg_container = container.containerEl.createEl('div')
-	console.log(svg_text)
 	svg_container.innerHTML = svg_text
 }
 
