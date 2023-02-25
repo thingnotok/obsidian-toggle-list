@@ -20,5 +20,10 @@
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
+	},
+	"dependencies": {
+		"install": "^0.13.0",
+		"npm": "^9.5.1",
+		"state-machine-cat": "^10.1.9"
 	}
 }

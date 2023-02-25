@@ -1,6 +1,27 @@
 import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingTab, Setting, type Hotkey } from 'obsidian';
-
+import smcat from "state-machine-cat";
 // Remember to rename these classes and interfaces!
+
+function drawDiagram():string{
+	try {
+		const lSVGInAString = smcat.render(
+		  `
+				  initial => backlog;
+				  backlog => doing;
+				  doing => test;
+			  `,
+		  {
+			outputType: "svg",
+		  }
+		);
+		console.log(lSVGInAString);
+		return lSVGInAString
+	  } catch (pError) {
+		console.error(pError);
+		return ""
+	  }
+}
+
 function getDate() {
 	// Return Date in YYYY-MM-DD format.
 	return new Date().toJSON().slice(0, 10)
@@ -354,11 +375,6 @@ function renderEmptyLine(text: string): string{
 	const emptyline_last = '\n'+EMPTY_TOKEN
 	let result = text.replace(/(^\n)/gm, emptyline)
 	result = result.replace(/\n$/gm, emptyline_last)
-	console.log("renderedText")
-	console.log(text)
-	console.log(">")
-	console.log(result)
-	console.log("---")
 	return result
 }
 
@@ -416,6 +432,12 @@ function resetSetting(plugin: ToggleList) {
 	})
 }
 
+function aa(){
+	const svg = drawDiagram()
+	// container.containerEl
+	const svgbox = container.containerEl.createEl("div", {text: "aaa"})
+	svgbox.innerHTML = svg
+}
 
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
