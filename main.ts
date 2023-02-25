@@ -1,5 +1,6 @@
 import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingTab, Setting, type Hotkey } from 'obsidian';
 import smcat from "state-machine-cat";
+import colormap from "colormap"
 // Remember to rename these classes and interfaces!
 
 function drawStateGroup(sg_list:Array<Setup>):string{
@@ -15,22 +16,24 @@ function drawStateGroup(sg_list:Array<Setup>):string{
 		diagram += `"${states[states.length-1]}";\n`;
 	return diagram
 }
-function drawConnection(state_group:Array<string>, cmd: string):string{
+function drawConnection(state_group:Array<string>, color:string):string{
 	let diagram = "";
 	const states = state_group.map(renderEmptyLine)
 	for(let i = 0; i < states.length-1; i++) {
-		diagram += `"${states[i]}" => "${states[i+1]}":${cmd};\n`;
+		diagram += `"${states[i]}" => "${states[i+1]}" [color="${color}"];\n`;
 	}
-	diagram += `"${states[states.length-1]}" => "${states[0]}":${cmd};\n`;
+	diagram += `"${states[states.length-1]}" -> "${states[0]}" [color="${color}"];\n`;
 	return diagram
 }
 
-function drawDiagram(diagram_description:string):string{
+function drawDiagram(diagram_description:string, engine:string="fdp"):string{
 	try {
 		const lSVGInAString = smcat.render(
 			diagram_description,
 		  {
 			outputType: "svg",
+			direction: "top-down",
+			engine: engine
 		  }
 		);
 		// console.log(lSVGInAString);
@@ -453,13 +456,6 @@ function resetSetting(plugin: ToggleList) {
 	})
 }
 
-function aa(){
-	const svg = drawDiagram()
-	// container.containerEl
-	const svgbox = container.containerEl.createEl("div", {text: "aaa"})
-	svgbox.innerHTML = svg
-}
-
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
 	const setup_list = settings.setup_list
@@ -566,14 +562,34 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 			});
 	});
 	// const state_diagram = new Setting(container.containerEl)
-	let text = ""
+	const num = settings.cmd_list.length < 256 ? 256 : settings.cmd_list.length
+	let colors = colormap({
+		colormap: 'rainbow-soft',
+		nshades: num,
+		format: 'hex',
+		alpha: 0.5
+	})
+	let svg_text = ""
+	let text = ``
+	for(let i = 0; i< settings.cmd_list.length-1;i++){
+		const cmd = settings.cmd_list[i]
+		const color_idx = (i/settings.cmd_list.length)*256 | 0
+		text += `"${cmd.name}" [color="${colors[color_idx]}"],`
+	}
+	let i = settings.cmd_list.length-1
+	let cmd = settings.cmd_list[i]
+	let color_idx = (i/settings.cmd_list.length)*256 | 0
+	text += `"${cmd.name}" [color="${colors[color_idx]}"];\n`
+	svg_text += drawDiagram(text, 'dot')
+	text = ``
 	for(let i = 0; i< settings.cmd_list.length;i++){
 		const cmd = settings.cmd_list[i]
-		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, cmd.name))
+		const color_idx = (i/settings.cmd_list.length)*256 | 0
+		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, colors[color_idx]))
 	}
-	console.log(text)
+	svg_text += drawDiagram(text)
 	const svg_container = container.containerEl.createEl('div')
-	svg_container.innerHTML = drawDiagram(text)
+	svg_container.innerHTML = svg_text
 }
 
 // modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
