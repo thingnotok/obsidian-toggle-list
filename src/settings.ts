@@ -115,7 +115,7 @@ export class ToggleListSettings {
 		this.cmd_list = []
 	}
 	addGroup(){
-		console.log("ToggleList: + State Group")
+		// console.log("ToggleList: + State Group")
 		// Randomly add a state group from default
 		const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
 		this.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));

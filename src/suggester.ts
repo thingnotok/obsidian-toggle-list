@@ -90,7 +90,7 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         const editor = value.context.editor;
         const line = value.appendText;
         const r = processOneLine2(line, this.settings.cur_setup, value.insertSkip||0)
-        console.log(r)
+        // console.log(r)
         const line_idx = value.insertAt||0
         const cursor = editor.getCursor();
         editor.setLine(line_idx, r.content)
