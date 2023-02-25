@@ -26,6 +26,12 @@ function drawConnection(state_group:Array<string>, color:string):string{
 	return diagram
 }
 
+function removeRedundentConnection(scma_text:string){
+	const lines = scma_text.split("\n");
+	const line_ary = [...new Set(lines)];
+	return line_ary.join('\n')
+}
+
 function drawDiagram(diagram_description:string, engine:string="fdp"):string{
 	try {
 		const lSVGInAString = smcat.render(
@@ -456,6 +462,13 @@ function resetSetting(plugin: ToggleList) {
 	})
 }
 
+function modifySVG(svg_text: string){
+	let result = svg_text
+	result = result.replace(/<g (id="node)/gs,
+				 `<g class="togglelist_theme" $1`)
+	return result
+}
+
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
 	const setup_list = settings.setup_list
@@ -587,8 +600,9 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 		const color_idx = (i/settings.cmd_list.length)*256 | 0
 		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, colors[color_idx]))
 	}
-	svg_text += drawDiagram(text)
+	svg_text += modifySVG(drawDiagram(removeRedundentConnection(text)))
 	const svg_container = container.containerEl.createEl('div')
+	console.log(svg_text)
 	svg_container.innerHTML = svg_text
 }
 
