@@ -1,3 +1,6 @@
+// Suggester module is modified from claremacrae's great work: Tasks
+// https://github.com/obsidian-tasks-group/obsidian-tasks
+
 import { App, Editor, EditorSuggest, TFile, } from 'obsidian';
 import type { EditorPosition, EditorSuggestContext, EditorSuggestTriggerInfo } from 'obsidian';
 import {ToggleListSettings, Setup, match_sg, processOneLine2} from 'src/settings'
