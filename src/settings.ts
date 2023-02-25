@@ -83,30 +83,8 @@ export class Setup {
 	all_states: string;
 	constructor(STATES: Array<string>) {
 		this.index = 0;
-		this.states = STATES;
+		this.states = [...STATES];
 		updateSettingStates(this);
-	}
-}
-
-export class ToggleListSettingTab extends PluginSettingTab {
-	plugin: ToggleList;
-
-	constructor(app: App, plugin: ToggleList) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-
-	display(): void {
-		// const { containerEl } = this;
-		this.containerEl.empty();
-		let settings = this.plugin.settings
-		// console.log("Redraw UI")
-		addSettingUI(this, settings);
-		const exp = this.containerEl.createEl('div', {cls:'togglelist_div'})
-		exp.innerHTML= `<button class="togglelist_btn">
-		<a href="https://github.com/thingnotok/obsidian-toggle-list">README</a>
-		</button>`
 	}
 }
 
@@ -135,6 +113,26 @@ export class ToggleListSettings {
 		this.hot = false;
 		this.setup_list = []
 		this.cmd_list = []
+	}
+	addGroup(){
+		console.log("ToggleList: + State Group")
+		// Randomly add a state group from default
+		const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
+		this.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));
+	}
+	reset(){
+		// Empty setup lists
+		this.setup_list = []
+		// Add setup_list with default groups
+		DEFAULT_STATEGROUP.forEach(e => {
+			this.setup_list.push(new Setup(e));
+		})
+		// Empty cmd_list
+		this.cmd_list = []
+		// Add command with default cmds
+		DEFAULT_CMD.forEach(e => {
+			this.cmd_list.push(new Command(e.index, e.name, e.bindings))
+		})
 	}
 }
 
@@ -236,7 +234,7 @@ export function match_sg(text: string, setup: Setup){
 	return { success: true, content: cur_pair[0], offset: cur_idx }
 }
 
-function toggleAction(editor: Editor, view: MarkdownView, sg_list: Setup[], bindings: number[], direction: number) {
+export function toggleAction(editor: Editor, view: MarkdownView, sg_list: Setup[], bindings: number[], direction: number) {
 	// console.log('action')
 	// console.log(setup)
 	let selection = editor.listSelections()[0];
@@ -321,76 +319,7 @@ export function updateSettingStates(setup: Setup) {
 	// console.log('--------')
 }
 
-function registerAction(plugin: ToggleList, action: Command, sg_list: Array<Setup>) {
-	const n_name = `${action.name}-Next`
-	const p_name = `${action.name}-Prev`
-	const pop_name = `${action.name}-POP`
-	if(action.pop){
-		plugin.addCommand({
-			id: pop_name,
-			name: pop_name,
-			icon: 'top-arrow',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				const cur = editor.getCursor()
-				const next = Object.assign({}, cur);
-				plugin.settings.hot = true;
-				plugin.settings.cur_cmd = action;
-				editor.replaceRange(" ", cur);
-				next.ch = cur.ch + 1
-				editor.replaceRange("", cur, next)
-			},
-		});
-	}
-	else{
-		plugin.addCommand({
-			id: n_name,
-			name: n_name,
-			icon: 'right-arrow',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, sg_list, action.bindings, 1)
-			},
-		});
-		plugin.addCommand({
-			id: p_name,
-			name: p_name,
-			icon: 'left-arrow',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				toggleAction(editor, view, sg_list, action.bindings, -1)
-			},
-		});
-	}
-}
-
-export function registerActions(plugin: ToggleList) {
-	const sg_list = plugin.settings.setup_list
-	plugin.settings.cmd_list.forEach(cmd => {
-		registerAction(plugin, cmd, sg_list)
-	})
-}
-
-function unregistAction(plugin: ToggleList, cmd: Command) {
-	if(cmd.pop){
-		deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-POP`)
-	}
-	else {
-		deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-Next`)
-		deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-Prev`)
-	}
-}
-
-function removeStateGroup(plugin: ToggleList, setup: Setup) {
-	const index = setup.index;
-	// console.log("Remove index " + index + " From list")
-	// console.log(plugin.settings.setup_list)
-	// console.log("New List")
-	let sg = plugin.settings.setup_list.splice(index, 1)[0];
-	// console.log(plugin.settings.setup_list)
-	// console.log("With sg popout")
-	// console.log(sg)
-	plugin.saveSettings();
-}
-
-function getStateFromText(setup: Setup, rendered_text: string) {
+export function getStateFromText(setup: Setup, rendered_text: string) {
 	const text = rendered_text.replace(EMPTY_TOKEN, "")
 	setup.all_states = text;
 	setup.states = text.split('\n')
@@ -407,206 +336,10 @@ export function renderEmptyLine(text: string): string{
 	return result
 }
 
-function updateCmdList(settings:ToggleListSettings, removedIdx: number){
-	settings.cmd_list.forEach(cmd => {
-		const nbinding = cmd.bindings.map(function (b){
-			return (b > removedIdx) ? b-1 : (b==removedIdx) ? -1 : b
-		})
-		cmd.bindings = nbinding.filter(b=>b>=0)
-	})
-}
-
-function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
-	// console.log('Add new setup ui')
-	const plugin = container.plugin
-	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
-		cb.setIcon('trash')
-			.setCta()
-			.onClick(() => {
-				removeStateGroup(plugin, setup)
-				updateListIndexs(plugin.settings.setup_list)
-				updateCmdList(plugin.settings, setup.index)
-				plugin.settings.cmd_list.forEach(cmd =>{
-					unregistAction(plugin, cmd)
-				})
-				plugin.settings.cmd_list = plugin.settings.cmd_list.filter(cmd => cmd.bindings.length > 0)
-				registerActions(plugin)
-				// Force refresh
-				container.display();
-			});
-	});
-	const renderedText = renderEmptyLine(setup.all_states)
-	sg_ui.setName('State Group: ' + setup.index.toString())
-		.addTextArea(text => text.setValue(renderedText)
-			.onChange(async (text_value) => {
-				getStateFromText(setup, text_value)
-				await container.plugin.saveSettings();
-			}
-			));
-}
-
-function updateListIndexs(setup_list: Array<Setup>): void {
-	setup_list.forEach((setup, idx) => setup.index = idx)
-}
-
-function reloadSetting(container: ToggleListSettingTab, settings: ToggleListSettings) {
-	updateListIndexs(settings.setup_list)
-	container.plugin.saveSettings();
-	registerActions(container.plugin);
-	// Force refresh
-	container.display();
-}
-
-
-export function resetSetting(plugin: ToggleList) {
-	const settings = plugin.settings
-	// Empty setup lists
-	settings.setup_list = []
-	// Add setup_list with default groups
-	DEFAULT_STATEGROUP.forEach(e => {
-		settings.setup_list.push(new Setup(e));
-	})
-	updateListIndexs(settings.setup_list)
-	// Unregister commands
-	if (settings.cmd_list)
-		settings.cmd_list.forEach(cmd => unregistAction(plugin, cmd))
-	// Empty cmd_list
-	settings.cmd_list = []
-	// Add command with default cmds
-	DEFAULT_CMD.forEach(e => {
-		settings.cmd_list.push(e)
-	})
-}
 
 
 
-function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
-	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
-	const setup_list = settings.setup_list
-	// Add setup UI for each state group
-	settings.setup_list.forEach(setup => {
-		addSetupUI(container, setup);
-	})
-	// Button: Add a new state group
-	const aa = new Setting(container.containerEl).addButton((cb) => {
-		cb.setButtonText("+ State Group")
-			.setCta()
-			.onClick(() => {
-				console.log("ToggleList: + State Group")
-				// console.log(container.plugin.settings)
-				settings = container.plugin.settings
-				// Randomly add a state group from default
-				const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
-				settings.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));
-				reloadSetting(container, settings)
-			});
-	});
-	const cmd_list = settings.cmd_list;
-	container.containerEl.createEl('h2', { text: 'Bind the Commands with State Groups' })
-	container.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states' })
-	for (let i = 0; i < cmd_list.length; i++) {
-		const cmd_section = new Setting(container.containerEl)
-			.setName(`${cmd_list[i].name}`)
-			.setDesc(`[Command Name] [Binding State Groups]`)
-			.addToggle((cb) => {
-				cb.setValue(cmd_list[i].pop||false)
-				cb.onChange((value) => {
-					unregistAction(container.plugin, cmd_list[i])
-					cmd_list[i].pop = value
-					reloadSetting(container, settings)
-				})
-			})
-			.addButton((cb) => {
-				cb.setIcon('trash')
-				cb.setCta()
-				cb.onClick(() => {
-					unregistAction(container.plugin, cmd_list[i])
-					cmd_list.splice(i, 1)
-					reloadSetting(container, settings)
-				})
-			})
-			.addText((cb) => {
-				cb.setValue(
-					cmd_list[i].name
-				)
-				cb.setPlaceholder("Command Name")
-				cb.onChange((value) => {
-					cmd_list[i].tmp_name = value
-				})
-			})
-			.addText((cb) => {
-				cb.setValue(
-					cmd_list[i].bindings.map(x => x.toString()).join(", ")
-				)
-				cb.setPlaceholder("Indes of State Groups: 0, 1, 2")
-				cb.onChange((value) => {
-					cmd_list[i].bindings = value.split(",").map(x => parseInt(x, 10))
-					// console.log(cmd_list[i].bindings)
-					container.plugin.saveSettings();
-				})
-			})
-			.addButton((cb) => {
-				cb.setIcon('checkmark')
-				cb.setCta()
-				cb.onClick(() => {
-					// console.log(cmd_list[i])
-					unregistAction(container.plugin, cmd_list[i])
-					cmd_list[i].name = cmd_list[i].tmp_name
-					cmd_list[i].bindings = cmd_list[i].bindings.filter(b => b < setup_list.length);
-					cmd_list[i].bindings = [...new Set(cmd_list[i].bindings)];
-					// console.log(cmd_list[i].bindings)
-					reloadSetting(container, settings)
-				})
-			})
-	}
-	new Setting(container.containerEl).addButton((cb) => {
-		cb.setButtonText('+ Command')
-		cb.setCta()
-		cb.onClick(() => {
-			const name = `Command ${settings.cmd_list.length}`
-			settings.cmd_list.push(new Command(settings.cmd_list.length, name, [0]))
-			reloadSetting(container, settings);
-		})
-	})
 
-	const other = new Setting(container.containerEl)
-	// Button: goto hotkey setup page for togglelist
-	other.addButton((cb) => {
-		cb.setButtonText("🔥 Hotkeys")
-			.setCta()
-			.onClick(() => {
-				// console.log("ToggleList: go to hotkey panel")
-				this.app.setting.openTabById("hotkeys").setQuery("ToggleList")
-			});
-	});
-	// Button: reset state groups to default groups
-	other.addButton((cb) => {
-		cb.setButtonText("↻ Reset")
-			.setCta()
-			.onClick(async () => {
-				// console.log("ToggleList: Reset")
-				// container.plugin.saveSettings("config.json");
-				const stamp = (new Date()).toISOString()
-				await this.app.vault.writeConfigJson(`plugins/obsidian-toggle-list/backup-${stamp}`, settings)
-				new Notice(`ToggleList: Original config is saved in plugins/obsidian-toggle-list/backup-${stamp}.json`)
-				resetSetting(container.plugin)
-				reloadSetting(container, settings)
-			});
-	});
-	// const state_diagram = new Setting(container.containerEl)
-	
-	const svg_container = container.containerEl.createEl('div')
-	svg_container.innerHTML = genDiagramSVG(settings)
-}
+
 
 // modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
-function deleteObsidianCommand(app: App, commandId: string) {
-	// console.log("Revoke Command=" + commandId)
-	// @ts-ignore
-	if (app.commands.findCommand(commandId)) {
-		// @ts-ignore
-		delete app.commands.commands[commandId];
-		// @ts-ignore
-		delete app.commands.editorCommands[commandId];
-	}
-}
