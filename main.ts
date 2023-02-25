@@ -31,7 +31,6 @@ export default class ToggleList extends Plugin {
 				new Command(0, 'command-0', [0]))
 		}
 	}
-
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}

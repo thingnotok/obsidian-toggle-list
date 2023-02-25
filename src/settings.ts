@@ -1,54 +1,9 @@
 import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingTab, Setting, type Hotkey } from 'obsidian';
-import smcat from "state-machine-cat";
-import colormap from "colormap"
 import ToggleList from "main";
+import {genDiagramSVG} from "src/stateDiagram"
 
-function drawStateGroup(sg_list:Array<Setup>):string{
-	let diagram = "";
-	let sgs = Array<string>();
-	for(let i = 0; i < sg_list.length-1; i++)
-		sgs.concat(sg_list[i].states);
-	sgs = sgs.map(renderEmptyLine)
-	const states = [...new Set(sgs)];
-	// console.log(states);
-	for(let i = 0; i < states.length-1; i++)
-		diagram += `"${states[i]}",`;
-		diagram += `"${states[states.length-1]}";\n`;
-	return diagram
-}
-function drawConnection(state_group:Array<string>, color:string):string{
-	let diagram = "";
-	const states = state_group.map(renderEmptyLine)
-	for(let i = 0; i < states.length-1; i++) {
-		diagram += `"${states[i]}" => "${states[i+1]}" [color="${color}"];\n`;
-	}
-	diagram += `"${states[states.length-1]}" -> "${states[0]}" [color="${color}"];\n`;
-	return diagram
-}
 
-function removeRedundentConnection(scma_text:string){
-	const lines = scma_text.split("\n");
-	const line_ary = [...new Set(lines)];
-	return line_ary.join('\n')
-}
 
-function drawDiagram(diagram_description:string, engine:string="fdp"):string{
-	try {
-		const lSVGInAString = smcat.render(
-			diagram_description,
-		  {
-			outputType: "svg",
-			direction: "top-down",
-			engine: engine
-		  }
-		);
-		// console.log(lSVGInAString);
-		return lSVGInAString
-	  } catch (pError) {
-		console.error(pError);
-		return ""
-	  }
-}
 
 function getDate() {
 	// Return Date in YYYY-MM-DD format.
@@ -442,7 +397,7 @@ function getStateFromText(setup: Setup, rendered_text: string) {
 	updateSettingStates(setup);
 }
 
-function renderEmptyLine(text: string): string{
+export function renderEmptyLine(text: string): string{
 	const emptyline = EMPTY_TOKEN + '\n'
 	const emptyline_last = '\n'+EMPTY_TOKEN
 	let result = text.replace(/(^\n)/gm, emptyline)
@@ -506,12 +461,7 @@ export function resetSetting(plugin: ToggleList) {
 	})
 }
 
-function modifySVG(svg_text: string){
-	let result = svg_text
-	result = result.replace(/<g (id="node)/gs,
-				 `<g class="togglelist_theme" $1`)
-	return result
-}
+
 
 function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSettings): void {
 	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
@@ -627,34 +577,9 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 			});
 	});
 	// const state_diagram = new Setting(container.containerEl)
-	const num = settings.cmd_list.length < 256 ? 256 : settings.cmd_list.length
-	let colors = colormap({
-		colormap: 'rainbow-soft',
-		nshades: num,
-		format: 'hex',
-		alpha: 0.5
-	})
-	let svg_text = ""
-	let text = ``
-	for(let i = 0; i< settings.cmd_list.length-1;i++){
-		const cmd = settings.cmd_list[i]
-		const color_idx = (i/settings.cmd_list.length)*256 | 0
-		text += `"${cmd.name}" [color="${colors[color_idx]}"],`
-	}
-	let i = settings.cmd_list.length-1
-	let cmd = settings.cmd_list[i]
-	let color_idx = (i/settings.cmd_list.length)*256 | 0
-	text += `"${cmd.name}" [color="${colors[color_idx]}"];\n`
-	svg_text += drawDiagram(text, 'dot')
-	text = ``
-	for(let i = 0; i< settings.cmd_list.length;i++){
-		const cmd = settings.cmd_list[i]
-		const color_idx = (i/settings.cmd_list.length)*256 | 0
-		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, colors[color_idx]))
-	}
-	svg_text += modifySVG(drawDiagram(removeRedundentConnection(text)))
+	
 	const svg_container = container.containerEl.createEl('div')
-	svg_container.innerHTML = svg_text
+	svg_container.innerHTML = genDiagramSVG(settings)
 }
 
 // modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
