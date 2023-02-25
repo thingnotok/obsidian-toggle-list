@@ -407,13 +407,31 @@ export function renderEmptyLine(text: string): string{
 	return result
 }
 
+function updateCmdList(settings:ToggleListSettings, removedIdx: number){
+	settings.cmd_list.forEach(cmd => {
+		const nbinding = cmd.bindings.map(function (b){
+			return (b > removedIdx) ? b-1 : (b==removedIdx) ? -1 : b
+		})
+		cmd.bindings = nbinding.filter(b=>b>=0)
+	})
+}
+
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	// console.log('Add new setup ui')
+	const plugin = container.plugin
 	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
 		cb.setIcon('trash')
 			.setCta()
 			.onClick(() => {
-				removeStateGroup(container.plugin, setup)
+				removeStateGroup(plugin, setup)
+				updateListIndexs(plugin.settings.setup_list)
+				updateCmdList(plugin.settings, setup.index)
+				plugin.settings.cmd_list.forEach(cmd =>{
+					unregistAction(plugin, cmd)
+				})
+				plugin.settings.cmd_list = plugin.settings.cmd_list.filter(cmd => cmd.bindings.length > 0)
+				console.log(plugin.settings.cmd_list)
+				registerActions(plugin)
 				// Force refresh
 				container.display();
 			});
