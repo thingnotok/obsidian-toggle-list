@@ -2,19 +2,38 @@ import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingT
 import smcat from "state-machine-cat";
 // Remember to rename these classes and interfaces!
 
-function drawDiagram():string{
+function drawStateGroup(sg_list:Array<Setup>):string{
+	let diagram = "";
+	let sgs = Array<string>();
+	for(let i = 0; i < sg_list.length-1; i++)
+		sgs.concat(sg_list[i].states);
+	sgs = sgs.map(renderEmptyLine)
+	const states = [...new Set(sgs)];
+	// console.log(states);
+	for(let i = 0; i < states.length-1; i++)
+		diagram += `"${states[i]}",`;
+		diagram += `"${states[states.length-1]}";\n`;
+	return diagram
+}
+function drawConnection(state_group:Array<string>, cmd: string):string{
+	let diagram = "";
+	const states = state_group.map(renderEmptyLine)
+	for(let i = 0; i < states.length-1; i++) {
+		diagram += `"${states[i]}" => "${states[i+1]}":${cmd};\n`;
+	}
+	diagram += `"${states[states.length-1]}" => "${states[0]}":${cmd};\n`;
+	return diagram
+}
+
+function drawDiagram(diagram_description:string):string{
 	try {
 		const lSVGInAString = smcat.render(
-		  `
-				  initial => backlog;
-				  backlog => doing;
-				  doing => test;
-			  `,
+			diagram_description,
 		  {
 			outputType: "svg",
 		  }
 		);
-		console.log(lSVGInAString);
+		// console.log(lSVGInAString);
 		return lSVGInAString
 	  } catch (pError) {
 		console.error(pError);
@@ -375,6 +394,8 @@ function renderEmptyLine(text: string): string{
 	const emptyline_last = '\n'+EMPTY_TOKEN
 	let result = text.replace(/(^\n)/gm, emptyline)
 	result = result.replace(/\n$/gm, emptyline_last)
+	if(result == "")
+		result = EMPTY_TOKEN
 	return result
 }
 
@@ -544,6 +565,15 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				reloadSetting(container, settings)
 			});
 	});
+	// const state_diagram = new Setting(container.containerEl)
+	let text = ""
+	for(let i = 0; i< settings.cmd_list.length;i++){
+		const cmd = settings.cmd_list[i]
+		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, cmd.name))
+	}
+	console.log(text)
+	const svg_container = container.containerEl.createEl('div')
+	svg_container.innerHTML = drawDiagram(text)
 }
 
 // modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
