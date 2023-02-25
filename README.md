@@ -58,6 +58,8 @@ Here's why checkboxes need more states and how to query these customized states:
 	- Commands have suggestion mode now. A suggestion editor will pop when command/hotkey is triggered.
 - Codebase reorganization
 	- the project is reorganized to clarity.
+	
+	
 [1.0.5] - [[2022-11-08]]
 ---
 - Toggles
