@@ -46,7 +46,6 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
 
     onTrigger(cursor: EditorPosition, editor: Editor, _file: TFile): EditorSuggestTriggerInfo | null {
         if(this.settings.hot){
-            console.log("trigger")
             this.settings.hot = false;
             const line = editor.getLine(cursor.line);
             const bindings = this.settings.cur_cmd.bindings

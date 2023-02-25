@@ -1,5 +1,4 @@
 import {Plugin, App, Editor, MarkdownView} from 'obsidian';
-import 'default-passive-events'
 import { EditorSuggestor } from 'src/suggester';
 import {ToggleListSettings, Setup, toggleAction,
 	updateSettingStates, Command} from 'src/settings';
@@ -18,11 +17,12 @@ function deleteObsidianCommand(app: App, commandId: string) {
 }
 export default class ToggleList extends Plugin {
 	settings: ToggleListSettings;
-
+	tab: ToggleListSettingTab;
 	async onload() {
 		await this.loadSettings();
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new ToggleListSettingTab(this.app, this));
+		this.tab = new ToggleListSettingTab(this.app, this);
+		this.addSettingTab(this.tab);
 		this.registerActions();
 		this.registerEditorSuggest(new EditorSuggestor(this.app, this.settings))
 	}
@@ -126,5 +126,11 @@ export default class ToggleList extends Plugin {
 				},
 			});
 		}
+	}
+	reloadSetting() {
+		this.updateListIndexs()
+		this.saveSettings();
+		this.registerActions();
+		this.tab.display();
 	}
 }

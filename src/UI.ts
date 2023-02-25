@@ -3,93 +3,109 @@ import ToggleList from 'main';
 import {ToggleListSettings, Setup, Command, renderEmptyLine, getStateFromText} from 'src/settings';
 import {genDiagramSVG} from 'src/stateDiagram'
 
-function addSettingUI(container: ToggleListSettingTab): void {
-    const plugin = container.plugin
-    const settings = plugin.settings
-	container.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
+
+
+function genSGSection(tab:ToggleListSettingTab){
+    const plugin = tab.plugin
+    const settings = tab.plugin.settings
+    tab.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
 	const setup_list = settings.setup_list
 	// Add setup UI for each state group
 	settings.setup_list.forEach(setup => {
-		addSetupUI(container, setup);
+		addSetupUI(tab, setup);
 	})
 	// Button: Add a new state group
-	const aa = new Setting(container.containerEl).addButton((cb) => {
+	new Setting(tab.containerEl).addButton((cb) => {
 		cb.setButtonText("+ State Group")
 			.setCta()
 			.onClick(() => {
 				settings.addGroup()
-				reloadSetting(container, settings)
+				plugin.reloadSetting()
 			});
 	});
-	const cmd_list = settings.cmd_list;
-	container.containerEl.createEl('h2', { text: 'Bind the Commands with State Groups' })
-	container.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states' })
-	for (let i = 0; i < cmd_list.length; i++) {
-		const cmd_section = new Setting(container.containerEl)
-			.setName(`${cmd_list[i].name}`)
+}
+
+function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
+    const cmd_list = tab.plugin.settings.cmd_list
+    const settings = tab.plugin.settings
+    const plugin = tab.plugin
+    const cmd_section = new Setting(tab.containerEl)
+			.setName(`${cmd.name}`)
 			.setDesc(`[Command Name] [Binding State Groups]`)
 			.addToggle((cb) => {
-				cb.setValue(cmd_list[i].pop||false)
+				cb.setValue(cmd.pop||false)
 				cb.onChange((value) => {
-					plugin.unregistAction(cmd_list[i])
-					cmd_list[i].pop = value
-					reloadSetting(container, settings)
+					plugin.unregistAction(cmd)
+					cmd.pop = value
+					plugin.reloadSetting()
 				})
 			})
 			.addButton((cb) => {
 				cb.setIcon('trash')
 				cb.setCta()
 				cb.onClick(() => {
-					plugin.unregistAction(cmd_list[i])
-					cmd_list.splice(i, 1)
-					reloadSetting(container, settings)
+					plugin.unregistAction(cmd)
+					cmd_list.splice(cmdIdx, 1)
+					plugin.reloadSetting()
 				})
 			})
 			.addText((cb) => {
 				cb.setValue(
-					cmd_list[i].name
+					cmd.name
 				)
 				cb.setPlaceholder("Command Name")
 				cb.onChange((value) => {
-					cmd_list[i].tmp_name = value
+					cmd.tmp_name = value
 				})
 			})
 			.addText((cb) => {
 				cb.setValue(
-					cmd_list[i].bindings.map(x => x.toString()).join(", ")
+					cmd.bindings.map(x => x.toString()).join(", ")
 				)
 				cb.setPlaceholder("Indes of State Groups: 0, 1, 2")
 				cb.onChange((value) => {
-					cmd_list[i].bindings = value.split(",").map(x => parseInt(x, 10))
-					// console.log(cmd_list[i].bindings)
-					container.plugin.saveSettings();
+					cmd.bindings = value.split(",").map(x => parseInt(x, 10))
+					// console.log(cmd.bindings)
+					tab.plugin.saveSettings();
 				})
 			})
 			.addButton((cb) => {
 				cb.setIcon('checkmark')
 				cb.setCta()
 				cb.onClick(() => {
-					// console.log(cmd_list[i])
-					plugin.unregistAction(cmd_list[i])
-					cmd_list[i].name = cmd_list[i].tmp_name
-					cmd_list[i].bindings = cmd_list[i].bindings.filter(b => b < setup_list.length);
-					cmd_list[i].bindings = [...new Set(cmd_list[i].bindings)];
-					// console.log(cmd_list[i].bindings)
-					reloadSetting(container, settings)
+					// console.log(cmd)
+					plugin.unregistAction(cmd)
+					cmd.name = cmd.tmp_name
+					cmd.bindings = cmd.bindings.filter(b => b < settings.setup_list.length);
+					cmd.bindings = [...new Set(cmd.bindings)];
+					// console.log(cmd.bindings)
+					plugin.reloadSetting()
 				})
 			})
+}
+function genCMDSection(tab:ToggleListSettingTab){
+    tab.containerEl.createEl('h2', { text: 'Bind the Commands with State Groups' })
+	tab.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states' })
+    const cmd_list = tab.plugin.settings.cmd_list
+	for (let i = 0; i < cmd_list.length; i++) {
+		addCmdUI(tab, cmd_list[i], i)
 	}
-	new Setting(container.containerEl).addButton((cb) => {
+	new Setting(tab.containerEl).addButton((cb) => {
 		cb.setButtonText('+ Command')
 		cb.setCta()
 		cb.onClick(() => {
-			const name = `Command ${settings.cmd_list.length}`
-			settings.cmd_list.push(new Command(settings.cmd_list.length, name, [0]))
-			reloadSetting(container, settings);
+			const name = `Command ${cmd_list.length}`
+			cmd_list.push(new Command(cmd_list.length, name, [0]))
+			tab.plugin.reloadSetting()
 		})
 	})
 
-	const other = new Setting(container.containerEl)
+}
+function genMISCSection(tab:ToggleListSettingTab){
+    const cmd_list = tab.plugin.settings.cmd_list
+    const settings = tab.plugin.settings
+    const plugin = tab.plugin
+    const other = new Setting(tab.containerEl)
 	// Button: goto hotkey setup page for togglelist
 	other.addButton((cb) => {
 		cb.setButtonText("🔥 Hotkeys")
@@ -104,41 +120,23 @@ function addSettingUI(container: ToggleListSettingTab): void {
 		cb.setButtonText("↻ Reset")
 			.setCta()
 			.onClick(async () => {
-				// console.log("ToggleList: Reset")
-				// container.plugin.saveSettings("config.json");
 				const stamp = (new Date()).toISOString()
 				await this.app.vault.writeConfigJson(`plugins/obsidian-toggle-list/backup-${stamp}`, settings)
 				new Notice(`ToggleList: Original config is saved in plugins/obsidian-toggle-list/backup-${stamp}.json`)
 				plugin.resetSetting()
-				reloadSetting(container, settings)
+				plugin.reloadSetting()
 			});
 	});
-	// const state_diagram = new Setting(container.containerEl)
-	
-	const svg_container = container.containerEl.createEl('div')
-	svg_container.innerHTML = genDiagramSVG(settings)
 }
-
-
-export class ToggleListSettingTab extends PluginSettingTab {
-	plugin: ToggleList;
-
-	constructor(app: App, plugin: ToggleList) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-
-	display(): void {
-		// const { containerEl } = this;
-		this.containerEl.empty();
-		// console.log("Redraw UI")
-		addSettingUI(this);
-		const exp = this.containerEl.createEl('div', {cls:'togglelist_div'})
+function genDiagramSection(tab: ToggleListSettingTab){
+    const svg_container = tab.containerEl.createEl('div')
+	svg_container.innerHTML = genDiagramSVG(tab.plugin.settings)
+}
+function genExplanation(tab: ToggleListSettingTab): void {
+    const exp = tab.containerEl.createEl('div', {cls:'togglelist_div'})
 		exp.innerHTML= `<button class="togglelist_btn">
 		<a href="https://github.com/thingnotok/obsidian-toggle-list">README</a>
 		</button>`
-	}
 }
 
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
@@ -170,11 +168,24 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 			));
 }
 
-function reloadSetting(container: ToggleListSettingTab, settings: ToggleListSettings) {
-    const plugin = container.plugin
-	plugin.updateListIndexs()
-	container.plugin.saveSettings();
-	plugin.registerActions();
-	// Force refresh
-	container.display();
+
+export class ToggleListSettingTab extends PluginSettingTab {
+	plugin: ToggleList;
+
+	constructor(app: App, plugin: ToggleList) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
+    addSettingUI(): void {
+        genSGSection(this)
+        genCMDSection(this)
+        genMISCSection(this)
+        genDiagramSection(this)
+        genExplanation(this)
+    }
+
+	display(): void {
+		this.containerEl.empty();
+		this.addSettingUI();
+	}
 }
