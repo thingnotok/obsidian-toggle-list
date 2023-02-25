@@ -18,7 +18,17 @@ ToggleList provides the following features:
 
 4. Suggestion mode. 
 
-5. Togglelist works as a handy tool to setup contents in other plugins, check [Working with other Plugins](https://github.com/thingnotok/obsidian-toggle-list/doc/other_plugin.md) for more examples
+	https://user-images.githubusercontent.com/29173832/221370021-9646a62b-ad31-4212-a850-71919d8a9db7.mov
+
+
+	
+
+5. States visualization
+
+	![image](https://user-images.githubusercontent.com/29173832/221369660-5600d76d-b8ac-4354-b4cc-11457c1527db.png)
+
+
+6. Togglelist works as a handy tool to setup contents in other plugins, check [Working with other Plugins](https://github.com/thingnotok/obsidian-toggle-list/doc/other_plugin.md) for more examples
 
 Here's why checkboxes need more states and how to query these customized states:
 
@@ -58,7 +68,7 @@ Here's why checkboxes need more states and how to query these customized states:
 	- Commands have suggestion mode now. A suggestion editor will pop when command/hotkey is triggered.
 - Codebase reorganization
 	- the project is reorganized to clarity.
-	
+- Many thanks to [engage-results](https://github.com/engage-results) and [replete](https://github.com/replete) for their valuable suggestions.
 	
 [1.0.5] - [[2022-11-08]]
 ---
