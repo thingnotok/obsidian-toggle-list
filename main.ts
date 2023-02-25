@@ -1,5 +1,5 @@
 import {Plugin} from 'obsidian';
-
+import 'default-passive-events'
 import { EditorSuggestor } from 'src/suggester';
 import {ToggleListSettings, ToggleListSettingTab, registerActions,
 	resetSetting, updateSettingStates, Command} from 'src/settings';

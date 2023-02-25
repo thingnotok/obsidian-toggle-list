@@ -430,7 +430,6 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 					unregistAction(plugin, cmd)
 				})
 				plugin.settings.cmd_list = plugin.settings.cmd_list.filter(cmd => cmd.bindings.length > 0)
-				console.log(plugin.settings.cmd_list)
 				registerActions(plugin)
 				// Force refresh
 				container.display();
