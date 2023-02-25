@@ -120,7 +120,7 @@ const DEFAULT_CMD = [
 const EMPTY_TOKEN = '{PARAGRAPH}'
 const EMPTY_STATES = Array<string>()
 
-class Setup {
+export class Setup {
 	index: number;
 	states: Array<string>;
 	sorteds: Array<string>;
@@ -170,9 +170,17 @@ export class Command {
 	}
 }
 
-export interface ToggleListSettings {
+export class ToggleListSettings {
 	setup_list: Array<Setup>;
 	cmd_list: Array<Command>;
+	hot: boolean;
+	cur_cmd: Command;
+	cur_setup: Setup;
+	constructor(){
+		this.hot = false;
+		this.setup_list = []
+		this.cmd_list = []
+	}
 }
 
 
@@ -235,12 +243,21 @@ function roundAdd(a: number, b: number, low: number, high: number): number {
 	return result
 }
 
+export function processOneLine2(text: string, setup: Setup, toIdx: number) {
+	const cur_match = getCurrentState(text, setup.sorteds);
+	if (cur_match.sorted_idx < 0) {
+		return { success: false, content: text, offset: 0 }
+	}
+	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
+	const next_idx = toIdx
+	const cur_pair = separatePreSur(setup.states[cur_idx])
+	const next_pair = separatePreSur(setup.states[next_idx])
+	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
+	const offset = next_pair[0].length - cur_pair[0].length
+	return { success: true, content: new_text, offset: offset}
+}
+
 function processOneLine(text: string, setup: Setup, direction: number) {
-	// console.log(setup)
-	// const idents = numberOfTabs(text);
-	// const noident_text = text.slice(idents);
-	// const idents = 0
-	// const origin_len = text.length
 	const cur_match = getCurrentState(text, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
 		return { success: false, content: text, offset: 0 }
@@ -249,16 +266,19 @@ function processOneLine(text: string, setup: Setup, direction: number) {
 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
-	// console.log(`Current State=${cur_pair}`)
-	// console.log(`Next State=${next_pair}`)
-	// console.log(cur_match)
 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
 	const offset = next_pair[0].length - cur_pair[0].length
-	// console.log("next-text=" + new_text)
-	// console.log('LengthChangeFrom=' + cur_pair[0].length + "=To=" + next_pair[0].length)
-	// console.log('Offset=' + (next_pair[0].length - cur_pair[0].length))
-	// console.log(`Offset=${offset}`)
-	return { success: true, content: new_text, offset: offset }
+	return { success: true, content: new_text, offset: offset}
+}
+
+export function match_sg(text: string, setup: Setup){
+	const cur_match = getCurrentState(text, setup.sorteds);
+	if (cur_match.sorted_idx < 0) {
+		return { success: false, content: text, offset: 0 }
+	}
+	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
+	const cur_pair = separatePreSur(setup.states[cur_idx])
+	return { success: true, content: cur_pair[0], offset: cur_idx }
 }
 
 function toggleAction(editor: Editor, view: MarkdownView, sg_list: Setup[], bindings: number[], direction: number) {
@@ -349,23 +369,41 @@ export function updateSettingStates(setup: Setup) {
 function registerAction(plugin: ToggleList, action: Command, sg_list: Array<Setup>) {
 	const n_name = `${action.name}-Next`
 	const p_name = `${action.name}-Prev`
-	plugin.addCommand({
-		id: n_name,
-		name: n_name,
-		icon: 'right-arrow',
-		editorCallback: (editor: Editor, view: MarkdownView) => {
-			toggleAction(editor, view, sg_list, action.bindings, 1)
-		},
-	});
-	plugin.addCommand({
-		id: p_name,
-		name: p_name,
-		icon: 'left-arrow',
-		editorCallback: (editor: Editor, view: MarkdownView) => {
-			toggleAction(editor, view, sg_list, action.bindings, -1)
-		},
-	});
-
+	const pop_name = `${action.name}-POP`
+	if(action.pop){
+		plugin.addCommand({
+			id: pop_name,
+			name: pop_name,
+			icon: 'top-arrow',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				const cur = editor.getCursor()
+				const next = Object.assign({}, cur);
+				plugin.settings.hot = true;
+				plugin.settings.cur_cmd = action;
+				editor.replaceRange(" ", cur);
+				next.ch = cur.ch + 1
+				editor.replaceRange("", cur, next)
+			},
+		});
+	}
+	else{
+		plugin.addCommand({
+			id: n_name,
+			name: n_name,
+			icon: 'right-arrow',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				toggleAction(editor, view, sg_list, action.bindings, 1)
+			},
+		});
+		plugin.addCommand({
+			id: p_name,
+			name: p_name,
+			icon: 'left-arrow',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				toggleAction(editor, view, sg_list, action.bindings, -1)
+			},
+		});
+	}
 }
 
 export function registerActions(plugin: ToggleList) {
@@ -375,11 +413,14 @@ export function registerActions(plugin: ToggleList) {
 	})
 }
 
-function unregistAction(plugin: ToggleList, cmd_name: string) {
-	// console.log('unregisterCommand')
-	// console.log(`obsidian-toggle-list: ${cmd_name}-Next`)
-	deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd_name}-Next`)
-	deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd_name}-Prev`)
+function unregistAction(plugin: ToggleList, cmd: Command) {
+	if(cmd.pop){
+		deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-POP`)
+	}
+	else {
+		deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-Next`)
+		deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-Prev`)
+	}
 }
 
 function removeStateGroup(plugin: ToggleList, setup: Setup) {
@@ -456,7 +497,7 @@ export function resetSetting(plugin: ToggleList) {
 	updateListIndexs(settings.setup_list)
 	// Unregister commands
 	if (settings.cmd_list)
-		settings.cmd_list.forEach(cmd => unregistAction(plugin, cmd.name))
+		settings.cmd_list.forEach(cmd => unregistAction(plugin, cmd))
 	// Empty cmd_list
 	settings.cmd_list = []
 	// Add command with default cmds
@@ -503,14 +544,16 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 			.addToggle((cb) => {
 				cb.setValue(cmd_list[i].pop||false)
 				cb.onChange((value) => {
+					unregistAction(container.plugin, cmd_list[i])
 					cmd_list[i].pop = value
+					reloadSetting(container, settings)
 				})
 			})
 			.addButton((cb) => {
 				cb.setIcon('trash')
 				cb.setCta()
 				cb.onClick(() => {
-					unregistAction(container.plugin, cmd_list[i].name)
+					unregistAction(container.plugin, cmd_list[i])
 					cmd_list.splice(i, 1)
 					reloadSetting(container, settings)
 				})
@@ -540,7 +583,7 @@ function addSettingUI(container: ToggleListSettingTab, settings: ToggleListSetti
 				cb.setCta()
 				cb.onClick(() => {
 					// console.log(cmd_list[i])
-					unregistAction(container.plugin, cmd_list[i].name)
+					unregistAction(container.plugin, cmd_list[i])
 					cmd_list[i].name = cmd_list[i].tmp_name
 					cmd_list[i].bindings = cmd_list[i].bindings.filter(b => b < setup_list.length);
 					cmd_list[i].bindings = [...new Set(cmd_list[i].bindings)];

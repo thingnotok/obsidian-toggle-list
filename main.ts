@@ -12,6 +12,7 @@ export default class ToggleList extends Plugin {
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new ToggleListSettingTab(this.app, this));
 		registerActions(this);
+		this.registerEditorSuggest(new EditorSuggestor(this.app, this.settings))
 	}
 	async loadSettings() {
 		console.log("ToggleList: Loading settings:")

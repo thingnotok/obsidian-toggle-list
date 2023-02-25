@@ -1,6 +1,6 @@
 import { App, Editor, EditorSuggest, TFile, } from 'obsidian';
 import type { EditorPosition, EditorSuggestContext, EditorSuggestTriggerInfo } from 'obsidian';
-import {ToggleListSettings} from 'src/settings'
+import {ToggleListSettings, Setup, match_sg, processOneLine2} from 'src/settings'
 export type SuggestInfo = {
     suggestionType?: 'match' | 'default' | 'empty';
     // What to display to the user
@@ -17,6 +17,25 @@ export type SuggestInfoWithContext = SuggestInfo & {
     context: EditorSuggestContext;
 };
 
+
+export function buildSuggestions(line_num:number, line: string, idx: number, setup: Setup): SuggestInfo[] {
+    let suggestions: SuggestInfo[] = [];
+    const N = setup.states.length
+    const nidx = idx+1==N ? 0 : idx+1
+    const stateIdices = [...Array(N-nidx).keys()].map(i=>i+nidx).concat(
+        [...Array(nidx).keys()])
+    for(let i = 0; i < N; i++) {
+        const curIdx = stateIdices[i]
+        suggestions.push({
+            displayText: setup.states[curIdx],
+            appendText: line,
+            insertAt: line_num,
+            insertSkip: curIdx,
+        })
+    }
+    return suggestions;
+}
+
 export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
     private settings: ToggleListSettings;
 
@@ -26,26 +45,36 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
     }
 
     onTrigger(cursor: EditorPosition, editor: Editor, _file: TFile): EditorSuggestTriggerInfo | null {
-        if (!this.settings.autoSuggestInEditor) return null;
-        const line = editor.getLine(cursor.line);
-        if (line.contains(this.settings.globalFilter) && line.match(task.TaskRegularExpressions.taskRegex)) {
-            return {
-                start: { line: cursor.line, ch: 0 },
-                end: {
-                    line: cursor.line,
-                    ch: line.length,
-                },
-                query: line,
-            };
+        if(this.settings.hot){
+            console.log("trigger")
+            this.settings.hot = false;
+            const line = editor.getLine(cursor.line);
+            const bindings = this.settings.cur_cmd.bindings
+            for (let i = 0; i < bindings.length; i++) {
+                const setup = this.settings.setup_list[bindings[i]]
+                const r = match_sg(line, setup)
+                if (r.success){
+                    this.settings.cur_setup = setup
+                    return {
+                        start: cursor,
+                        end: {
+                            line: cursor.line,
+                            ch: r.offset,
+                        },
+                        query: line,
+                    };
+                } 
+            }
         }
         return null;
     }
 
     getSuggestions(context: EditorSuggestContext): SuggestInfoWithContext[] {
         const line = context.query;
-        const currentCursor = context.editor.getCursor();
-
-        const suggestions: SuggestInfo[] = buildSuggestions(line, currentCursor.ch, this.settings);
+        const line_idx = context.start.line
+        const state_idx = context.end.ch
+        const suggestions: SuggestInfo[] = buildSuggestions(
+            line_idx, line, state_idx, this.settings.cur_setup);
 
         // Add the editor context to all the suggestions
         const suggestionsWithContext: SuggestInfoWithContext[] = [];
@@ -60,31 +89,14 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
 
     selectSuggestion(value: SuggestInfoWithContext, _evt: MouseEvent | KeyboardEvent) {
         const editor = value.context.editor;
-        if (value.suggestionType === 'empty') {
-            // Close the suggestion dialog and simulate an Enter press to the editor
-            this.close();
-            const eventClone = new KeyboardEvent('keydown', {
-                code: 'Enter',
-                key: 'Enter',
-            });
-            (editor as any)?.cm?.contentDOM?.dispatchEvent(eventClone);
-            return;
-        }
-        const currentCursor = value.context.editor.getCursor();
-        const replaceFrom = {
-            line: currentCursor.line,
-            ch: value.insertAt ?? currentCursor.ch,
-        };
-        const replaceTo = value.insertSkip
-            ? {
-                  line: currentCursor.line,
-                  ch: replaceFrom.ch + value.insertSkip,
-              }
-            : undefined;
-        value.context.editor.replaceRange(value.appendText, replaceFrom, replaceTo);
-        value.context.editor.setCursor({
-            line: currentCursor.line,
-            ch: replaceFrom.ch + value.appendText.length,
-        });
+        const line = value.appendText;
+        const r = processOneLine2(line, this.settings.cur_setup, value.insertSkip||0)
+        console.log(r)
+        const line_idx = value.insertAt||0
+        const cursor = editor.getCursor();
+        editor.setLine(line_idx, r.content)
+        const ch = (cursor.ch+r.offset > r.content.length) ? 
+                r.content.length : cursor.ch+r.offset
+        editor.setCursor(line_idx, ch)
     }
 }
