@@ -29,9 +29,9 @@ export default class ToggleList extends Plugin {
 	async loadSettings() {
 		this.settings = new ToggleListSettings()
 		const settings = Object.assign({}, await this.loadData());
-		this.settings.cmd_list = settings.cmd_list;
-		this.settings.setup_list = settings.setup_list;
-		if (!this.settings.setup_list) {
+		this.settings.cmd_list = settings.cmd_list||[];
+		this.settings.setup_list = settings.setup_list||[];
+		if (this.settings.setup_list.length<1) {
 			this.resetSetting();
 			this.saveSettings();
 		}
@@ -39,7 +39,7 @@ export default class ToggleList extends Plugin {
 			this.settings.setup_list.forEach(setup => updateSettingStates(setup))
 		}
 		// This is for backbard compatibility
-		if (!this.settings.cmd_list) {
+		if (this.settings.cmd_list.length<1) {
 			this.settings.cmd_list = Array<Command>();
 			this.settings.cmd_list.push(
 				new Command(0, 'command-0', [0]))
