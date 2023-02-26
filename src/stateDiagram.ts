@@ -1,4 +1,6 @@
+// @ts-ignore
 import smcat from "state-machine-cat";
+// @ts-ignore
 import colormap from "colormap"
 import { ToggleListSettings, renderEmptyLine} from "./settings";
 
