@@ -20,7 +20,7 @@ function genSGSection(tab:ToggleListSettingTab){
 			.setCta()
 			.onClick(() => {
 				settings.addGroup()
-				plugin.reloadSetting()
+				plugin.reloadSettingUI()
 			});
 	});
 }
@@ -37,7 +37,7 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 				cb.onChange((value) => {
 					plugin.unregistAction(cmd)
 					cmd.pop = value
-					plugin.reloadSetting()
+					plugin.reloadSettingUI();
 				})
 			})
 			.addButton((cb) => {
@@ -46,7 +46,7 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 				cb.onClick(() => {
 					plugin.unregistAction(cmd)
 					cmd_list.splice(cmdIdx, 1)
-					plugin.reloadSetting()
+					plugin.reloadSettingUI();
 				})
 			})
 			.addText((cb) => {
@@ -79,7 +79,7 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 					cmd.bindings = cmd.bindings.filter(b => b < settings.setup_list.length);
 					cmd.bindings = [...new Set(cmd.bindings)];
 					// console.log(cmd.bindings)
-					plugin.reloadSetting()
+					plugin.reloadSettingUI()
 				})
 			})
 }
@@ -96,7 +96,7 @@ function genCMDSection(tab:ToggleListSettingTab){
 		cb.onClick(() => {
 			const name = `Command ${cmd_list.length}`
 			cmd_list.push(new Command(cmd_list.length, name, [0]))
-			tab.plugin.reloadSetting()
+			tab.plugin.reloadSettingUI()
 		})
 	})
 
@@ -123,8 +123,8 @@ function genMISCSection(tab:ToggleListSettingTab){
 				const stamp = (new Date()).toISOString()
 				await this.app.vault.writeConfigJson(`plugins/obsidian-toggle-list/backup-${stamp}`, settings)
 				new Notice(`ToggleList: Original config is saved in plugins/obsidian-toggle-list/backup-${stamp}.json`)
-				plugin.resetSetting()
-				plugin.reloadSetting()
+				plugin.reset()
+				plugin.reloadSettingUI()
 			});
 	});
 }
@@ -148,14 +148,15 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 		cb.setIcon('trash')
 			.setCta()
 			.onClick(() => {
-                plugin.removeStateGroup(setup)
+                plugin.settings.removeStateGroup(setup)
                 plugin.settings.updateListIndexs()
-				plugin.updateCmdList(setup.index)
+				plugin.settings.updateCmdList(setup.index)
 				plugin.settings.cmd_list.forEach(cmd =>{
 					plugin.unregistAction(cmd)
 				})
 				plugin.settings.cmd_list = plugin.settings.cmd_list.filter(cmd => cmd.bindings.length > 0)
-				plugin.registerActions()
+				plugin.registerActions();
+				plugin.saveSettings();
 				// Force refresh
 				container.display();
 			});

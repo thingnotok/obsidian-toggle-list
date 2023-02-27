@@ -120,10 +120,10 @@ export class ToggleListSettings {
 	cur_cmd: Command;
 	cur_setup: Setup;
 	pop_state: PopState;
-	constructor(){
+	constructor(fromFile:any){
 		this.pop_state = new PopState();
-		this.setup_list = []
-		this.cmd_list = []
+		this.cmd_list = fromFile?.cmd_list||[];
+		this.setup_list = fromFile?.setup_list||[];
 	}
 	addGroup(){
 		// console.log("ToggleList: + State Group")
@@ -148,6 +148,18 @@ export class ToggleListSettings {
 	updateListIndexs(){
 		this.setup_list.forEach(
 			(setup:Setup, idx:number) => setup.index = idx)
+	}
+	updateCmdList(removedIdx: number){
+		this.cmd_list.forEach(cmd => {
+			const nbinding = cmd.bindings.map(function (b){
+				return (b > removedIdx) ? b-1 : (b==removedIdx) ? -1 : b
+			})
+			cmd.bindings = nbinding.filter(b=>b>=0)
+		})
+	}
+	removeStateGroup(setup: Setup) {
+		const index = setup.index;
+		this.setup_list.splice(index, 1)[0];
 	}
 }
 
