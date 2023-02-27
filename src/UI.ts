@@ -18,12 +18,12 @@ function genSGSection(tab:ToggleListSettingTab){
 		cb.setButtonText("+ State Group")
 			.setCta()
 			.onClick(() => {
-				settings.addGroup()
-				plugin.reloadSettingUI()
+				settings.addStateGroup();
+				settings.validate();
+				plugin.reloadSettingUI();
 			});
 	});
 }
-
 function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
     const cmd_list = tab.plugin.settings.cmd_list
     const settings = tab.plugin.settings
@@ -32,10 +32,11 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 			.setName(`${cmd.name}`)
 			.setDesc(`[Command Name] [Binding State Groups]`)
 			.addToggle((cb) => {
-				cb.setValue(cmd.pop||false)
+				cb.setValue(cmd.isPopOver)
 				cb.onChange((value) => {
-					plugin.unregistAction(cmd)
-					cmd.pop = value
+					plugin.unregistAction(cmd);
+					cmd.isPopOver = value;
+					plugin.registerAction(cmd, settings.setup_list);
 					plugin.reloadSettingUI();
 				})
 			})
@@ -43,19 +44,17 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 				cb.setIcon('trash')
 				cb.setCta()
 				cb.onClick(() => {
-					plugin.unregistAction(cmd)
-					cmd_list.splice(cmdIdx, 1)
+					plugin.unregistAction(cmd);
+					cmd_list.splice(cmdIdx, 1);
 					plugin.reloadSettingUI();
 				})
 			})
 			.addText((cb) => {
-				cb.setValue(
-					cmd.name
-				)
+				cb.setValue(cmd.name);
 				cb.setPlaceholder("Command Name")
 				cb.onChange((value) => {
-					cmd.tmp_name = value
-				})
+					cmd.tmp_name = value;
+				});
 			})
 			.addText((cb) => {
 				cb.setValue(
@@ -63,8 +62,7 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 				)
 				cb.setPlaceholder("Indes of State Groups: 0, 1, 2")
 				cb.onChange((value) => {
-					cmd.bindings = value.split(",").map(x => parseInt(x, 10))
-					// console.log(cmd.bindings)
+					cmd.bindings = value.split(",").map(x => parseInt(x, 10));
 					tab.plugin.saveSettings();
 				})
 			})
@@ -75,10 +73,10 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 					// console.log(cmd)
 					plugin.unregistAction(cmd)
 					cmd.name = cmd.tmp_name
+					plugin.registerAction(cmd, settings.setup_list);
 					cmd.bindings = cmd.bindings.filter(b => b < settings.setup_list.length);
 					cmd.bindings = [...new Set(cmd.bindings)];
-					// console.log(cmd.bindings)
-					plugin.reloadSettingUI()
+					plugin.reloadSettingUI();
 				})
 			})
 }
@@ -94,8 +92,13 @@ function genCMDSection(tab:ToggleListSettingTab){
 		cb.setCta()
 		cb.onClick(() => {
 			const name = `Command ${cmd_list.length}`
-			cmd_list.push(new Command(cmd_list.length, name, [0]))
-			tab.plugin.reloadSettingUI()
+			if(tab.plugin.settings.setup_list.length>0){
+				cmd_list.push(new Command({index:cmd_list.length, name:name, bindings:[0]}));
+				tab.plugin.reloadSettingUI();
+			}
+			else{
+				tab.plugin.sendNotify("No State Groups to bind")
+			}
 		})
 	})
 
@@ -127,10 +130,23 @@ function genMISCSection(tab:ToggleListSettingTab){
 			});
 	});
 }
-function genDiagramSection(tab: ToggleListSettingTab){
-	if(tab.plugin.settings.cmd_list.length > 0){
-		const svg_container = tab.containerEl.createEl('div')
-		svg_container.innerHTML = genDiagramSVG(tab.plugin.settings)
+async function genDiagramSection(tab: ToggleListSettingTab){
+	const other = new Setting(tab.containerEl)
+	other.addToggle((cb) => {
+		cb.setValue(tab.plugin.settings.plot)
+		cb.onChange((value) => {
+			tab.plugin.settings.plot = value;
+			tab.plugin.reloadSettingUI();
+		})}
+	)
+	if(tab.plugin.settings.plot){
+		if(tab.plugin.settings.cmd_list.length > 0){
+			const svg_container = tab.containerEl.createEl('div');
+			 svg_container.innerHTML = await genDiagramSVG(tab.plugin.settings);
+		}
+		else{
+			tab.plugin.sendNotify("no Commands to draw")
+		}
 	}
 }
 function genExplanation(tab: ToggleListSettingTab): void {
@@ -166,7 +182,6 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 			}
 			));
 }
-
 
 export class ToggleListSettingTab extends PluginSettingTab {
 	plugin: ToggleList;

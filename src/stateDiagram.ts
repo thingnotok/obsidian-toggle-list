@@ -22,7 +22,7 @@ function removeRedundentConnection(scma_text:string){
 }
 
 
-function drawDiagram(diagram_description:string, engine:string="fdp"):string{
+export async function drawDiagram(diagram_description:string, engine:string="fdp"):Promise<string>{
 	try {
 		const lSVGInAString = smcat.render(
 			diagram_description,
@@ -55,7 +55,7 @@ function genColorMap(samples:number){
 	})
 	return colors
 }
-export function genDiagramSVG(settings:ToggleListSettings): string{
+export async function genDiagramSVG(settings:ToggleListSettings): Promise<string>{
     const colors = genColorMap(settings.cmd_list.length)
 	let svg_text = ""
 	let text = ``
@@ -68,13 +68,14 @@ export function genDiagramSVG(settings:ToggleListSettings): string{
 	let cmd = settings.cmd_list[i]
 	let color_idx = (i/settings.cmd_list.length)*256 | 0
 	text += `"${cmd.name}" [color="${colors[color_idx]}"];\n`
-	svg_text += drawDiagram(text, 'dot')
+	svg_text += await drawDiagram(text, 'dot')
 	text = ``
 	for(let i = 0; i< settings.cmd_list.length;i++){
 		const cmd = settings.cmd_list[i]
 		const color_idx = (i/settings.cmd_list.length)*256 | 0
 		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, colors[color_idx]))
 	}
-	svg_text += modifySVG(drawDiagram(removeRedundentConnection(text)))
+	const rawSVG = await drawDiagram(removeRedundentConnection(text));
+	svg_text += modifySVG(rawSVG)
     return svg_text
 }

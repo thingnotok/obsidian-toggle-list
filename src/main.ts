@@ -1,9 +1,9 @@
-import {Plugin, App, Editor, MarkdownView} from 'obsidian';
+import {Plugin, App, Editor, MarkdownView, Notice} from 'obsidian';
 import { EditorSuggestor } from 'src/suggester';
 import {ToggleListSettings, Setup, Command} from 'src/settings';
 import {ToggleListSettingTab} from 'src/UI'
 import {toggleAction, popAction } from 'src/tlAction';
-
+import {drawDiagram} from 'src/stateDiagram';
 
 function deleteObsidianCommand(app: App, commandId: string) {
 	// modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
@@ -24,11 +24,13 @@ export default class ToggleList extends Plugin {
 		this.tab = new ToggleListSettingTab(this.app, this);
 		this.addSettingTab(this.tab);
 		this.registerActions();
-		this.registerEditorSuggest(new EditorSuggestor(this.app, this.settings))
+		this.registerEditorSuggest(new EditorSuggestor(this.app, this.settings));
+		drawDiagram("");
 	}
 	async loadSettings() {
 		const settings = await this.loadData();
 		this.settings = new ToggleListSettings(settings);
+		this.saveSettings();
 	}
 	async saveSettings() {
 		await this.saveData(this.settings);
@@ -38,7 +40,7 @@ export default class ToggleList extends Plugin {
 			this.unregistAction(cmd))
 	}
 	unregistAction(cmd: Command) {
-		if(cmd.pop){
+		if(cmd.isPopOver){
 			deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-POP`)
 		}
 		else {
@@ -56,7 +58,7 @@ export default class ToggleList extends Plugin {
 		const n_name = `${action.name}-Next`
 		const p_name = `${action.name}-Prev`
 		const pop_name = `${action.name}-POP`
-		if(action.pop){
+		if(action.isPopOver){
 			this.addCommand({
 				id: pop_name,
 				name: pop_name,
@@ -88,11 +90,13 @@ export default class ToggleList extends Plugin {
 	reloadSettingUI() {
 		this.settings.validate();
 		this.saveSettings();
-		this.registerActions();
 		this.tab.display();
 	}
 	reset(){
 		this.unregisterActions();
 		this.settings.reset();
+	}
+	sendNotify(text:string){
+		new Notice(text);
 	}
 }

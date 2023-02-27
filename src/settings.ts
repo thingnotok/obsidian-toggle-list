@@ -92,13 +92,13 @@ export class Command {
 	name: string;
 	tmp_name: string;
 	bindings: Array<number>;
-	pop: boolean;
-	constructor(index: number, name: string, bindings:Array<number>){
-		this.index = index;
-		this.name = name;
-		this.tmp_name = name;
-		this.bindings = bindings;
-		this.pop = false;
+	isPopOver: boolean;
+	constructor(cmd:any){
+		this.index = cmd.index||0;
+		this.name = cmd.name||"";
+		this.tmp_name = this.name;
+		this.bindings = cmd.bindings||Array<number>();
+		this.isPopOver = cmd.isPopOver||false;
 	}
 }
 
@@ -108,12 +108,24 @@ export class ToggleListSettings {
 	cur_cmd: Command;
 	cur_setup: Setup;
 	pop_state: PopState;
+	plot: boolean;
 	constructor(fromFile:any){
 		this.pop_state = new PopState();
-		this.cmd_list = fromFile?.cmd_list||[];
-		this.setup_list = fromFile?.setup_list||[];
+		this.plot = false;
+		this.cmd_list = fromFile?.cmd_list.map((cmd:any) => new Command(cmd));
+		this.setup_list = fromFile?.setup_list?.map((setup:any) => 
+			new Setup(setup?.all_states||"")
+		);
+		if(!this.setup_list){
+			this.reset_setup_list();
+		}
+		if(!this.cmd_list){
+			this.reset_cmd_list();
+		}
+		this.validate();
+
 	}
-	addGroup(){
+	addStateGroup(){
 		// Randomly add a state group from default
 		const chosen = DEFAULT_STATEGROUP.at(
 			Math.floor(Math.random() * DEFAULT_STATEGROUP.length)
@@ -122,22 +134,35 @@ export class ToggleListSettings {
 	}
 	validate(){
 		this.cleanSetupList();
+		this.cleanCmdList();
 	}
-	reset(){
+	reset_setup_list(){
 		// Initialize setup_list with default groups
 		this.setup_list = DEFAULT_STATEGROUP.map((setup)=>{
 			return new Setup(setup.join('\n'))
 		})
+	}
+	reset_cmd_list(){
 		// Initialize cmd_list with default cmds
 		this.cmd_list = DEFAULT_CMD.map((cmd)=>{
-			return new Command(cmd.index, cmd.name, cmd.bindings)
+			return new Command(cmd)
 		})
+	}
+	reset(){
+		this.reset_setup_list();
+		this.reset_cmd_list();
 		this.validate();
 	}
 	cleanSetupList(){
 		this.setup_list.forEach(
 			(setup:Setup, idx:number) => setup.index = idx
 		)
+	}
+	cleanCmdList(){
+		this.cmd_list.forEach(cmd => {
+			cmd.bindings = cmd.bindings.filter(b=>b<this.setup_list.length);
+		})
+		this.cmd_list.filter(cmd =>cmd.bindings.length>0)
 	}
 	cleanCmdListAfterSetupRemoved(removedIdx: number){
 		this.cmd_list.forEach(cmd => {
