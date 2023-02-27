@@ -59,6 +59,12 @@ Here's why checkboxes need more states and how to query these customized states:
 
 
 ## Changelog
+[1.1.3]
+---
+- resolve the performance issue #14
+- update the suggestion window when hotkey is consectively triggered
+- update UI 
+
 [1.0.6/7] - [[2023-02-26]]
 ---
 - Clarity
