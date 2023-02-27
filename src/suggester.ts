@@ -3,7 +3,7 @@
 
 import { App, Editor, EditorSuggest, TFile, } from 'obsidian';
 import type { EditorPosition, EditorSuggestContext, EditorSuggestTriggerInfo } from 'obsidian';
-import {ToggleListSettings, Setup, match_sg, processOneLine2} from 'src/settings'
+import {ToggleListSettings, Setup, match_sg, processOneLine2, PopState} from 'src/settings'
 export type SuggestInfo = {
     suggestionType?: 'match' | 'default' | 'empty';
     // What to display to the user
@@ -41,15 +41,27 @@ export function buildSuggestions(line_num:number, line: string, idx: number, set
 
 export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
     private settings: ToggleListSettings;
-
+    private popw: PopState
     constructor(app: App, settings: ToggleListSettings) {
         super(app);
         this.settings = settings;
+        this.popw = settings.pop_state
     }
 
     onTrigger(cursor: EditorPosition, editor: Editor, _file: TFile): EditorSuggestTriggerInfo | null {
-        if(this.settings.hot){
-            this.settings.hot = false;
+        if(!this.popw.hot){
+            this.popw.popon = false;
+        }
+        else{
+            // if(this.popw.edited)
+            //     this.popw.incr = 0;
+            // this.popw.edited = false;
+            // if(this.popw.popon){
+            //     console.log('state: pop on')
+            // }
+            // else
+            //     console.log('state: pop off')
+            this.popw.hot = false;
             const line = editor.getLine(cursor.line);
             const bindings = this.settings.cur_cmd.bindings
             for (let i = 0; i < bindings.length; i++) {
@@ -74,14 +86,28 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
     getSuggestions(context: EditorSuggestContext): SuggestInfoWithContext[] {
         const line = context.query;
         const line_idx = context.start.line
-        const state_idx = context.end.ch
+        let state_idx = context.end.ch
+        
+        if(this.popw.popon){
+            this.popw.incr += 1;
+            state_idx += this.popw.incr;
+            if(state_idx>=this.settings.cur_setup.states.length){
+                state_idx -= this.settings.cur_setup.states.length;
+            }
+            if(this.popw.incr==this.settings.cur_setup.states.length)
+                this.popw.incr = 0;
+        }
+        else{
+            this.popw.incr = 0;
+        }
         const suggestions: SuggestInfo[] = buildSuggestions(
             line_idx, line, state_idx, this.settings.cur_setup);
-
+        
         // Add the editor context to all the suggestions
         const suggestionsWithContext: SuggestInfoWithContext[] = [];
         for (const suggestion of suggestions) suggestionsWithContext.push({ ...suggestion, context: context });
-
+        
+        this.popw.popon = true;
         return suggestionsWithContext;
     }
 
@@ -96,9 +122,11 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         // console.log(r)
         const line_idx = value.insertAt||0
         const cursor = editor.getCursor();
-        editor.setLine(line_idx, r.content)
+        editor.setLine(line_idx, r.content);
         const ch = (cursor.ch+r.offset > r.content.length) ? 
                 r.content.length : cursor.ch+r.offset
-        editor.setCursor(line_idx, ch)
+        editor.setCursor(line_idx, ch);
+        this.popw.popon = false;
+        this.popw.incr = 0;
     }
 }
