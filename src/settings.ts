@@ -69,19 +69,14 @@ export class Setup {
 	sorteds: Array<string>;
 	states_dict: Map<number, number>;
 	all_states: string;
-	constructor(STATES: Array<string>) {
+	constructor(text: string) {
+		///this.all_states = this.states.join('\n')
 		this.index = 0;
-		this.states = [...STATES];
-		this.initializeSetup();
+		this.update(text)
 	}
-	initializeSetup(text: string="") {
-		if(text.length==0){//init with states
-			this.all_states = this.states.join('\n')
-		}
-		else{ //init with text
-			this.all_states = text.replace(EMPTY_TOKEN, "")
-			this.states = this.all_states.split('\n')
-		}
+	update(text: string=""){
+		this.all_states = text.replace(EMPTY_TOKEN, "")
+		this.states = this.all_states.split('\n')
 		const ori_states = this.states
 		const tmp = new Map();
 		const new_tmp = new Map();
@@ -121,12 +116,13 @@ export class ToggleListSettings {
 	addGroup(){
 		// Randomly add a state group from default
 		const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
-		this.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));
+		const chosen = DEFAULT_STATEGROUP[idx]
+		this.setup_list.push(new Setup(chosen.join('\n')));
 	}
 	reset(){
 		// Initialize setup_list with default groups
 		this.setup_list = DEFAULT_STATEGROUP.map((setup)=>{
-			return new Setup(setup)
+			return new Setup(setup.join('\n'))
 		})
 		// Initialize cmd_list with default cmds
 		this.cmd_list = DEFAULT_CMD.map((cmd)=>{

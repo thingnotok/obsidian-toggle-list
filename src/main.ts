@@ -21,8 +21,6 @@ export default class ToggleList extends Plugin {
 	tab: ToggleListSettingTab;
 	async onload() {
 		await this.loadSettings();
-		console.log("on load")
-		console.log(this.settings)
 		this.tab = new ToggleListSettingTab(this.app, this);
 		this.addSettingTab(this.tab);
 		this.registerActions();

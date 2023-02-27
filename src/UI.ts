@@ -163,7 +163,7 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	sg_ui.setName('State Group: ' + setup.index.toString())
 		.addTextArea(text => text.setValue(renderedText)
 			.onChange(async (text_value) => {
-				setup.initializeSetup(text_value);
+				setup.update(text_value);
 				await container.plugin.saveSettings();
 			}
 			));
