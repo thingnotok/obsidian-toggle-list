@@ -3,7 +3,9 @@
 
 import { App, Editor, EditorSuggest, TFile, } from 'obsidian';
 import type { EditorPosition, EditorSuggestContext, EditorSuggestTriggerInfo } from 'obsidian';
-import {ToggleListSettings, Setup, match_sg, processOneLine2, PopState} from 'src/settings'
+import {ToggleListSettings, Setup, PopState} from 'src/settings'
+import {match_sg, processOneLine2} from 'src/tlAction'
+
 export type SuggestInfo = {
     suggestionType?: 'match' | 'default' | 'empty';
     // What to display to the user

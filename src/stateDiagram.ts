@@ -2,7 +2,8 @@
 import smcat from "state-machine-cat";
 // @ts-ignore
 import colormap from "colormap"
-import { ToggleListSettings, renderEmptyLine} from "./settings";
+import { ToggleListSettings} from "./settings";
+import {renderEmptyLine} from 'src/tlAction'
 
 function drawConnection(state_group:Array<string>, color:string):string{
 	let diagram = "";

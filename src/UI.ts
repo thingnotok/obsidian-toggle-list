@@ -1,7 +1,8 @@
 import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingTab, Setting, type Hotkey } from 'obsidian';
-import ToggleList from 'main';
-import {ToggleListSettings, Setup, Command, renderEmptyLine, getStateFromText} from 'src/settings';
+import ToggleList from 'src/main';
+import {ToggleListSettings, Setup, Command, getStateFromText} from 'src/settings';
 import {genDiagramSVG} from 'src/stateDiagram'
+import {renderEmptyLine} from 'src/tlAction'
 
 
 

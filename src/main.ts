@@ -1,9 +1,9 @@
 import {Plugin, App, Editor, MarkdownView} from 'obsidian';
 import { EditorSuggestor } from 'src/suggester';
-import {ToggleListSettings, Setup, toggleAction,
+import {ToggleListSettings, Setup, 
 	updateSettingStates, Command} from 'src/settings';
 import {ToggleListSettingTab} from 'src/UI'
-import { popAction } from 'src/tlAction';
+import {toggleAction, popAction } from 'src/tlAction';
 
 
 function deleteObsidianCommand(app: App, commandId: string) {
@@ -74,7 +74,7 @@ export default class ToggleList extends Plugin {
 				name: n_name,
 				icon: 'right-arrow',
 				editorCallback: (editor: Editor, view: MarkdownView) => {
-					toggleAction(editor, view, sg_list, action.bindings, 1)
+					toggleAction(editor, sg_list, action.bindings, 1)
 				},
 			});
 			this.addCommand({
@@ -82,7 +82,7 @@ export default class ToggleList extends Plugin {
 				name: p_name,
 				icon: 'left-arrow',
 				editorCallback: (editor: Editor, view: MarkdownView) => {
-					toggleAction(editor, view, sg_list, action.bindings, -1)
+					toggleAction(editor, sg_list, action.bindings, -1)
 				},
 			});
 		}
