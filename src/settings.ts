@@ -75,6 +75,17 @@ const DEFAULT_CMD = [
 const EMPTY_TOKEN = '{PARAGRAPH}'
 const EMPTY_STATES = Array<string>()
 
+export class PopState {
+	popon: boolean; //flag to indicate popover suggestor is on
+	hot: boolean; // flag to indicate suggestor is triggered by command
+	incr: number; // counter to record number of consecutive triggers
+	constructor(){
+		this.popon = false;
+		this.hot = false;
+		this.incr = 0;
+	}
+}
+
 export class Setup {
 	index: number;
 	states: Array<string>;
@@ -106,11 +117,11 @@ export class Command {
 export class ToggleListSettings {
 	setup_list: Array<Setup>;
 	cmd_list: Array<Command>;
-	hot: boolean;
 	cur_cmd: Command;
 	cur_setup: Setup;
+	pop_state: PopState;
 	constructor(){
-		this.hot = false;
+		this.pop_state = new PopState();
 		this.setup_list = []
 		this.cmd_list = []
 	}

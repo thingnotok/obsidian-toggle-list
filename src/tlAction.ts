@@ -2,12 +2,16 @@ import { Editor } from "obsidian";
 import { Command } from "./settings";
 import { ToggleListSettings } from "./settings";
 
-export function popAction(editor:Editor, action:Command, settings:ToggleListSettings) {
+function triggerSuggestionEditor(editor: Editor){
 	const cur = editor.getCursor();
 	const next = Object.assign({}, cur);
-	settings.hot = true;
-	settings.cur_cmd = action;
 	editor.replaceRange(" ", cur);
 	next.ch = cur.ch + 1;
 	editor.replaceRange("", cur, next);
+}
+
+export function popAction(editor:Editor, action:Command, settings:ToggleListSettings) {
+	triggerSuggestionEditor(editor);
+	settings.pop_state.hot = true;
+	settings.cur_cmd = action;
 }
