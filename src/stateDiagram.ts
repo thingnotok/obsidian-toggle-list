@@ -44,14 +44,18 @@ function modifySVG(svg_text: string){
 				 `<g class="togglelist_theme" $1`)
 	return result
 }
-export function genDiagramSVG(settings:ToggleListSettings): string{
-    const num = settings.cmd_list.length < 256 ? 256 : settings.cmd_list.length
-	let colors = colormap({
+function genColorMap(samples:number){
+	const num = samples < 256 ? 256 : samples
+	const colors = colormap({
 		colormap: 'rainbow-soft',
 		nshades: num,
 		format: 'hex',
 		alpha: 0.5
 	})
+	return colors
+}
+export function genDiagramSVG(settings:ToggleListSettings): string{
+    const colors = genColorMap(settings.cmd_list.length)
 	let svg_text = ""
 	let text = ``
 	for(let i = 0; i< settings.cmd_list.length-1;i++){

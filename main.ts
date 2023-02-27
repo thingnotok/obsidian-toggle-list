@@ -55,10 +55,6 @@ export default class ToggleList extends Plugin {
 		let sg = this.settings.setup_list.splice(index, 1)[0];
 		this.saveSettings();
 	}
-	updateListIndexs(): void {
-		this.settings.setup_list.forEach(
-			(setup, idx) => setup.index = idx)
-	}
 	updateCmdList(removedIdx: number){
 		this.settings.cmd_list.forEach(cmd => {
 			const nbinding = cmd.bindings.map(function (b){
@@ -78,7 +74,7 @@ export default class ToggleList extends Plugin {
 	}
 	resetSetting() {
 		const settings = this.settings
-		this.updateListIndexs()
+		this.settings.updateListIndexs()
 		// Unregister commands
 		settings.cmd_list.forEach(cmd => 
 			this.unregistAction(cmd))
@@ -124,7 +120,7 @@ export default class ToggleList extends Plugin {
 		}
 	}
 	reloadSetting() {
-		this.updateListIndexs()
+		this.settings.updateListIndexs()
 		this.saveSettings();
 		this.registerActions();
 		this.tab.display();

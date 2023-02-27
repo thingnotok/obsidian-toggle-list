@@ -129,8 +129,10 @@ function genMISCSection(tab:ToggleListSettingTab){
 	});
 }
 function genDiagramSection(tab: ToggleListSettingTab){
-    const svg_container = tab.containerEl.createEl('div')
-	svg_container.innerHTML = genDiagramSVG(tab.plugin.settings)
+	if(tab.plugin.settings.cmd_list.length > 0){
+		const svg_container = tab.containerEl.createEl('div')
+		svg_container.innerHTML = genDiagramSVG(tab.plugin.settings)
+	}
 }
 function genExplanation(tab: ToggleListSettingTab): void {
     const exp = tab.containerEl.createEl('div', {cls:'togglelist_div'})
@@ -147,7 +149,7 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 			.setCta()
 			.onClick(() => {
                 plugin.removeStateGroup(setup)
-                plugin.updateListIndexs()
+                plugin.settings.updateListIndexs()
 				plugin.updateCmdList(setup.index)
 				plugin.settings.cmd_list.forEach(cmd =>{
 					plugin.unregistAction(cmd)

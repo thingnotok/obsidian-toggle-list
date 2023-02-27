@@ -145,6 +145,10 @@ export class ToggleListSettings {
 			this.cmd_list.push(new Command(e.index, e.name, e.bindings))
 		})
 	}
+	updateListIndexs(){
+		this.setup_list.forEach(
+			(setup:Setup, idx:number) => setup.index = idx)
+	}
 }
 
 
