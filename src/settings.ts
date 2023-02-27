@@ -115,8 +115,9 @@ export class ToggleListSettings {
 	}
 	addGroup(){
 		// Randomly add a state group from default
-		const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
-		const chosen = DEFAULT_STATEGROUP[idx]
+		const chosen = DEFAULT_STATEGROUP.at(
+			Math.floor(Math.random() * DEFAULT_STATEGROUP.length)
+			)||[]
 		this.setup_list.push(new Setup(chosen.join('\n')));
 	}
 	reset(){
