@@ -7,7 +7,7 @@ import {renderEmptyLine} from 'src/tlAction'
 function genSGSection(tab:ToggleListSettingTab){
     const plugin = tab.plugin
     const settings = tab.plugin.settings
-    tab.containerEl.createEl('h2', { text: 'Setup The States to Toggle' })
+    tab.containerEl.createEl('h3', { text: 'Setup The States to Toggle' })
 	const setup_list = settings.setup_list
 	// Add setup UI for each state group
 	settings.setup_list.forEach(setup => {
@@ -22,6 +22,14 @@ function genSGSection(tab:ToggleListSettingTab){
 				settings.validate();
 				plugin.reloadSettingUI();
 			});
+	})
+	.addButton((cb) => {
+		cb.setIcon('checkmark')
+		cb.setCta()
+		cb.onClick(() => {
+			settings.validate();
+			plugin.reloadSettingUI();
+		})
 	});
 }
 function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
@@ -29,8 +37,14 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
     const settings = tab.plugin.settings
     const plugin = tab.plugin
     const cmd_section = new Setting(tab.containerEl)
-			.setName(`${cmd.name}`)
-			.setDesc(`[Command Name] [Binding State Groups]`)
+			// .setName(`${cmd.name}`)
+			.addText((cb) => {
+				cb.setValue(cmd.name);
+				cb.setPlaceholder("Command Name")
+				cb.onChange((value) => {
+					cmd.tmp_name = value;
+				});
+			})
 			.addToggle((cb) => {
 				cb.setValue(cmd.isPopOver)
 				cb.onChange((value) => {
@@ -48,13 +62,6 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 					cmd_list.splice(cmdIdx, 1);
 					plugin.reloadSettingUI();
 				})
-			})
-			.addText((cb) => {
-				cb.setValue(cmd.name);
-				cb.setPlaceholder("Command Name")
-				cb.onChange((value) => {
-					cmd.tmp_name = value;
-				});
 			})
 			.addText((cb) => {
 				cb.setValue(
@@ -81,8 +88,10 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 			})
 }
 function genCMDSection(tab:ToggleListSettingTab){
-    tab.containerEl.createEl('h2', { text: 'Bind the Commands with State Groups' })
-	tab.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states' })
+    tab.containerEl.createEl('h3', { text: 'Bind the Commands with State Groups'})
+	tab.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states'})
+	tab.containerEl.createEl('p', { text: 'PopOver Command show suggestion editor instead of toggle directly.'})
+	tab.containerEl.createEl('p', { text: `[Name] [is PopOver] 🗑️ [Binding SG] ✅`})
     const cmd_list = tab.plugin.settings.cmd_list
 	for (let i = 0; i < cmd_list.length; i++) {
 		addCmdUI(tab, cmd_list[i], i)
@@ -131,22 +140,14 @@ function genMISCSection(tab:ToggleListSettingTab){
 	});
 }
 async function genDiagramSection(tab: ToggleListSettingTab){
-	const other = new Setting(tab.containerEl)
-	other.addToggle((cb) => {
-		cb.setValue(tab.plugin.settings.plot)
-		cb.onChange((value) => {
-			tab.plugin.settings.plot = value;
-			tab.plugin.reloadSettingUI();
-		})}
-	)
-	if(tab.plugin.settings.plot){
-		if(tab.plugin.settings.cmd_list.length > 0){
-			const svg_container = tab.containerEl.createEl('div');
-			 svg_container.innerHTML = await genDiagramSVG(tab.plugin.settings);
-		}
-		else{
-			tab.plugin.sendNotify("no Commands to draw")
-		}
+	const other = new Setting(tab.containerEl);
+	if(tab.plugin.settings.cmd_list.length > 0 ){
+		const svg_container = tab.containerEl.createEl('div');
+		svg_container.innerHTML = await genDiagramSVG(tab.plugin.settings);
+	}
+	else{
+		tab.containerEl.createEl('h2', { text: 
+			"Add at least one State Group and one Command to draw State Diagram"})
 	}
 }
 function genExplanation(tab: ToggleListSettingTab): void {
@@ -158,7 +159,7 @@ function genExplanation(tab: ToggleListSettingTab): void {
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	// console.log('Add new setup ui')
 	const plugin = container.plugin
-	let sg_ui = new Setting(container.containerEl).addButton((cb) => {
+	const sg_ui = new Setting(container.containerEl).addButton((cb) => {
 		cb.setIcon('trash')
 			.setCta()
 			.onClick(() => {
@@ -168,19 +169,21 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 				})
 				plugin.settings.cmd_list = plugin.settings.cmd_list.filter(cmd => cmd.bindings.length > 0)
 				plugin.registerActions();
-				plugin.saveSettings();
-				// Force refresh
-				container.display();
+				plugin.settings.validate();
+				plugin.reloadSettingUI();
 			});
 	});
 	const renderedText = renderEmptyLine(setup.all_states)
 	sg_ui.setName('State Group: ' + setup.index.toString())
-		.addTextArea(text => text.setValue(renderedText)
-			.onChange(async (text_value) => {
-				setup.update(text_value);
-				await container.plugin.saveSettings();
-			}
-			));
+	const ta = sg_ui.addTextArea((text) => {
+		text.setValue(renderedText);
+		text.onChange(async (text_value) => {
+			setup.update(text_value);
+		})
+		text.inputEl.setAttribute("rows", setup.states.length.toFixed());
+		text.inputEl.setAttribute("cols", "25");
+		text.inputEl.style.cssText = "resize: none";
+	})
 }
 
 export class ToggleListSettingTab extends PluginSettingTab {
