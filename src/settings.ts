@@ -154,6 +154,12 @@ export class ToggleListSettings {
 		this.validate();
 	}
 	cleanSetupList(){
+		//remove duplicated state
+		this.setup_list = this.setup_list.map((setup)=>{
+			const states = setup.states
+			const states_ary = [...new Set(states)];
+			return new Setup(states_ary.join('\n'))
+		})
 		this.setup_list.forEach(
 			(setup:Setup, idx:number) => setup.index = idx
 		)
