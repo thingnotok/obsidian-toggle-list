@@ -1,10 +1,8 @@
-import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingTab, Setting, type Hotkey } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import ToggleList from 'src/main';
-import {ToggleListSettings, Setup, Command, getStateFromText} from 'src/settings';
+import {ToggleListSettings, Setup, Command} from 'src/settings';
 import {genDiagramSVG} from 'src/stateDiagram'
 import {renderEmptyLine} from 'src/tlAction'
-
-
 
 function genSGSection(tab:ToggleListSettingTab){
     const plugin = tab.plugin
@@ -141,7 +139,6 @@ function genExplanation(tab: ToggleListSettingTab): void {
 		<a href="https://github.com/thingnotok/obsidian-toggle-list">README</a>
 		</button>`
 }
-
 function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	// console.log('Add new setup ui')
 	const plugin = container.plugin
@@ -166,7 +163,7 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 	sg_ui.setName('State Group: ' + setup.index.toString())
 		.addTextArea(text => text.setValue(renderedText)
 			.onChange(async (text_value) => {
-				getStateFromText(setup, text_value)
+				setup.initializeSetup(text_value);
 				await container.plugin.saveSettings();
 			}
 			));

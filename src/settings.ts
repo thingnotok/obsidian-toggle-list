@@ -1,10 +1,3 @@
-import { App, Editor, MarkdownView, Scope, Modal, Notice, Plugin, PluginSettingTab, Setting, type Hotkey } from 'obsidian';
-import ToggleList from "src/main";
-import {genDiagramSVG} from "src/stateDiagram"
-
-
-
-
 
 const DEFAULT_STATEGROUP = [
 	[
@@ -79,10 +72,26 @@ export class Setup {
 	constructor(STATES: Array<string>) {
 		this.index = 0;
 		this.states = [...STATES];
-		updateSettingStates(this);
+		this.initializeSetup();
+	}
+	initializeSetup(text: string="") {
+		if(text.length==0){//init with states
+			this.all_states = this.states.join('\n')
+		}
+		else{ //init with text
+			this.all_states = text.replace(EMPTY_TOKEN, "")
+			this.states = this.all_states.split('\n')
+		}
+		const ori_states = this.states
+		const tmp = new Map();
+		const new_tmp = new Map();
+		ori_states.forEach((os, idx) => tmp.set(os, idx))
+		this.sorteds = ori_states.slice(0)
+		this.sorteds = this.sorteds.sort((a: string, b: string) => b.length - a.length);
+		this.sorteds.forEach((ss, idx) => new_tmp.set(idx, tmp.get(ss)))
+		this.states_dict = new_tmp;
 	}
 }
-
 export class Command {
 	index: number;
 	name: string;
@@ -146,33 +155,3 @@ export class ToggleListSettings {
 		this.setup_list.splice(index, 1)[0];
 	}
 }
-
-export function updateSettingStates(setup: Setup) {
-	// console.log('beg:updateSettingStates');
-	// console.log(setup.states);
-	setup.all_states = setup.states.join('\n')
-	const ori_states = setup.states
-	// setup.states_dict = new Map();
-	const tmp = new Map();
-	const new_tmp = new Map();
-	ori_states.forEach((os, idx) => tmp.set(os, idx))
-	setup.sorteds = ori_states.slice(0)
-	setup.sorteds = setup.sorteds.sort((a: string, b: string) => b.length - a.length);
-	setup.sorteds.forEach((ss, idx) => new_tmp.set(idx, tmp.get(ss)))
-	setup.states_dict = new_tmp;
-	// console.log('end:updateSettingStates');
-	// console.log(setup)
-	// console.log('--------')
-}
-
-
-export function getStateFromText(setup: Setup, rendered_text: string) {
-	const text = rendered_text.replace(EMPTY_TOKEN, "")
-	setup.all_states = text;
-	setup.states = text.split('\n')
-	updateSettingStates(setup);
-}
-
-
-
-

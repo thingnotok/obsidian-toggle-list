@@ -1,7 +1,6 @@
 import {Plugin, App, Editor, MarkdownView} from 'obsidian';
 import { EditorSuggestor } from 'src/suggester';
-import {ToggleListSettings, Setup, 
-	updateSettingStates, Command} from 'src/settings';
+import {ToggleListSettings, Setup, Command} from 'src/settings';
 import {ToggleListSettingTab} from 'src/UI'
 import {toggleAction, popAction } from 'src/tlAction';
 
@@ -22,7 +21,8 @@ export default class ToggleList extends Plugin {
 	tab: ToggleListSettingTab;
 	async onload() {
 		await this.loadSettings();
-		// This adds a settings tab so the user can configure various aspects of the plugin
+		console.log("on load")
+		console.log(this.settings)
 		this.tab = new ToggleListSettingTab(this.app, this);
 		this.addSettingTab(this.tab);
 		this.registerActions();
@@ -93,7 +93,7 @@ export default class ToggleList extends Plugin {
 		this.registerActions();
 		this.tab.display();
 	}
-	reset() {
+	reset(){
 		this.unregisterActions();
 		this.settings.reset();
 	}
