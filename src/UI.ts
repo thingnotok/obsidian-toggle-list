@@ -146,9 +146,7 @@ function addSetupUI(container: ToggleListSettingTab, setup: Setup): void {
 		cb.setIcon('trash')
 			.setCta()
 			.onClick(() => {
-                plugin.settings.removeStateGroup(setup)
-                plugin.settings.updateListIndexs()
-				plugin.settings.updateCmdList(setup.index)
+                plugin.settings.removeSetup(setup)
 				plugin.settings.cmd_list.forEach(cmd =>{
 					plugin.unregistAction(cmd)
 				})

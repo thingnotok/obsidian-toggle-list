@@ -86,7 +86,7 @@ export default class ToggleList extends Plugin {
 		}
 	}
 	reloadSettingUI() {
-		this.settings.updateListIndexs()
+		this.settings.validate();
 		this.saveSettings();
 		this.registerActions();
 		this.tab.display();

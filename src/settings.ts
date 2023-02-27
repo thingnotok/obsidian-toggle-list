@@ -120,6 +120,9 @@ export class ToggleListSettings {
 			)||[]
 		this.setup_list.push(new Setup(chosen.join('\n')));
 	}
+	validate(){
+		this.cleanSetupList();
+	}
 	reset(){
 		// Initialize setup_list with default groups
 		this.setup_list = DEFAULT_STATEGROUP.map((setup)=>{
@@ -129,12 +132,14 @@ export class ToggleListSettings {
 		this.cmd_list = DEFAULT_CMD.map((cmd)=>{
 			return new Command(cmd.index, cmd.name, cmd.bindings)
 		})
+		this.validate();
 	}
-	updateListIndexs(){
+	cleanSetupList(){
 		this.setup_list.forEach(
-			(setup:Setup, idx:number) => setup.index = idx)
+			(setup:Setup, idx:number) => setup.index = idx
+		)
 	}
-	updateCmdList(removedIdx: number){
+	cleanCmdListAfterSetupRemoved(removedIdx: number){
 		this.cmd_list.forEach(cmd => {
 			const nbinding = cmd.bindings.map(function (b){
 				return (b > removedIdx) ? b-1 : (b==removedIdx) ? -1 : b
@@ -142,8 +147,10 @@ export class ToggleListSettings {
 			cmd.bindings = nbinding.filter(b=>b>=0)
 		})
 	}
-	removeStateGroup(setup: Setup) {
+	removeSetup(setup: Setup) {
 		const index = setup.index;
+		this.cleanCmdListAfterSetupRemoved(index);
 		this.setup_list.splice(index, 1)[0];
+		this.validate();
 	}
 }
