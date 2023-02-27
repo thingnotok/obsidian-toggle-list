@@ -109,6 +109,7 @@ export class ToggleListSettings {
 	cur_setup: Setup;
 	pop_state: PopState;
 	plot: boolean;
+	registedCmdName: Array<string>;
 	constructor(fromFile:any){
 		this.pop_state = new PopState();
 		this.plot = false;
@@ -168,7 +169,7 @@ export class ToggleListSettings {
 		this.cmd_list.forEach(cmd => {
 			cmd.bindings = cmd.bindings.filter(b=>b<this.setup_list.length);
 		})
-		this.cmd_list.filter(cmd =>cmd.bindings.length>0)
+		this.cmd_list = this.cmd_list.filter(cmd =>cmd.bindings.length>0)
 	}
 	cleanCmdListAfterSetupRemoved(removedIdx: number){
 		this.cmd_list.forEach(cmd => {

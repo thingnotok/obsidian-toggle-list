@@ -36,23 +36,25 @@ export default class ToggleList extends Plugin {
 		await this.saveData(this.settings);
 	}
 	unregisterActions() {
-		this.settings.cmd_list.forEach(cmd => 
-			this.unregistAction(cmd))
+		this.settings.registedCmdName.forEach(cmd => this.unregistAction(`obsidian-toggle-list:${cmd}`));
+		this.settings.registedCmdName = [];
 	}
-	unregistAction(cmd: Command) {
-		if(cmd.isPopOver){
-			deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-POP`)
-		}
-		else {
-			deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-Next`)
-			deleteObsidianCommand(this.app, `obsidian-toggle-list:${cmd.name}-Prev`)
-		}
+	unregistAction(cmd: string) {
+		deleteObsidianCommand(this.app, cmd)
 	}
 	registerActions() {
 		const sg_list = this.settings.setup_list
+		const reg = Array<string>();
 		this.settings.cmd_list.forEach(cmd => {
 			this.registerAction(cmd, sg_list)
+			if(cmd.isPopOver)
+				reg.push(`${cmd.name}-POP`)
+			else{
+				reg.push(`${cmd.name}-Next`)
+				reg.push(`${cmd.name}-Prev`)
+			}
 		})
+		this.settings.registedCmdName = reg
 	}
 	registerAction(action: Command, sg_list: Array<Setup>) {
 		const n_name = `${action.name}-Next`
@@ -87,9 +89,14 @@ export default class ToggleList extends Plugin {
 			});
 		}
 	}
-	reloadSettingUI() {
+	checkNreload(){
 		this.settings.validate();
+		this.unregisterActions();
+		this.registerActions();
 		this.saveSettings();
+		this.reloadSettingUI();
+	}
+	reloadSettingUI() {
 		this.tab.display();
 	}
 	reset(){
