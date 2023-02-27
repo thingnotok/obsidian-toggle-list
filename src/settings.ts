@@ -342,4 +342,3 @@ export function renderEmptyLine(text: string): string{
 
 
 
-// modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts

@@ -3,9 +3,11 @@ import { EditorSuggestor } from 'src/suggester';
 import {ToggleListSettings, Setup, toggleAction,
 	updateSettingStates, Command} from 'src/settings';
 import {ToggleListSettingTab} from 'src/UI'
+import { popAction } from 'src/tlAction';
 
 
 function deleteObsidianCommand(app: App, commandId: string) {
+	// modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
 	// console.log("Revoke Command=" + commandId)
 	// @ts-ignore
 	if (app.commands.findCommand(commandId)) {
@@ -98,13 +100,7 @@ export default class ToggleList extends Plugin {
 				name: pop_name,
 				icon: 'top-arrow',
 				editorCallback: (editor: Editor, view: MarkdownView) => {
-					const cur = editor.getCursor()
-					const next = Object.assign({}, cur);
-					this.settings.hot = true;
-					this.settings.cur_cmd = action;
-					editor.replaceRange(" ", cur);
-					next.ch = cur.ch + 1
-					editor.replaceRange("", cur, next)
+					popAction(editor, action, this.settings)
 				},
 			});
 		}
