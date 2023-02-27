@@ -2,7 +2,8 @@
 import smcat from "state-machine-cat";
 // @ts-ignore
 import colormap from "colormap"
-import { ToggleListSettings, renderEmptyLine} from "./settings";
+import { ToggleListSettings} from "./settings";
+import {renderEmptyLine} from 'src/tlAction'
 
 function drawConnection(state_group:Array<string>, color:string):string{
 	let diagram = "";
@@ -21,7 +22,7 @@ function removeRedundentConnection(scma_text:string){
 }
 
 
-function drawDiagram(diagram_description:string, engine:string="fdp"):string{
+export async function drawDiagram(diagram_description:string, engine:string="fdp"):Promise<string>{
 	try {
 		const lSVGInAString = smcat.render(
 			diagram_description,
@@ -44,14 +45,18 @@ function modifySVG(svg_text: string){
 				 `<g class="togglelist_theme" $1`)
 	return result
 }
-export function genDiagramSVG(settings:ToggleListSettings): string{
-    const num = settings.cmd_list.length < 256 ? 256 : settings.cmd_list.length
-	let colors = colormap({
+function genColorMap(samples:number){
+	const num = samples < 256 ? 256 : samples
+	const colors = colormap({
 		colormap: 'rainbow-soft',
 		nshades: num,
 		format: 'hex',
 		alpha: 0.5
 	})
+	return colors
+}
+export async function genDiagramSVG(settings:ToggleListSettings): Promise<string>{
+    const colors = genColorMap(settings.cmd_list.length)
 	let svg_text = ""
 	let text = ``
 	for(let i = 0; i< settings.cmd_list.length-1;i++){
@@ -63,13 +68,14 @@ export function genDiagramSVG(settings:ToggleListSettings): string{
 	let cmd = settings.cmd_list[i]
 	let color_idx = (i/settings.cmd_list.length)*256 | 0
 	text += `"${cmd.name}" [color="${colors[color_idx]}"];\n`
-	svg_text += drawDiagram(text, 'dot')
+	svg_text += await drawDiagram(text, 'dot')
 	text = ``
 	for(let i = 0; i< settings.cmd_list.length;i++){
 		const cmd = settings.cmd_list[i]
 		const color_idx = (i/settings.cmd_list.length)*256 | 0
 		cmd.bindings.forEach((j)=>text+=drawConnection(settings.setup_list[j].states, colors[color_idx]))
 	}
-	svg_text += modifySVG(drawDiagram(removeRedundentConnection(text)))
+	const rawSVG = await drawDiagram(removeRedundentConnection(text));
+	svg_text += modifySVG(rawSVG)
     return svg_text
 }
