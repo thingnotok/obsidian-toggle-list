@@ -64,6 +64,7 @@ Here's why checkboxes need more states and how to query these customized states:
 - resolve the performance issue #14
 - update the suggestion window when hotkey is consectively triggered
 - update UI 
+- refactor main, setting, tlActions
 
 [1.0.6/7] - [[2023-02-26]]
 ---
