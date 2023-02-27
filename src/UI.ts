@@ -73,19 +73,6 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 					tab.plugin.saveSettings();
 				})
 			})
-			.addButton((cb) => {
-				cb.setIcon('checkmark')
-				cb.setCta()
-				cb.onClick(() => {
-					// console.log(cmd)
-					plugin.unregistAction(cmd)
-					cmd.name = cmd.tmp_name
-					plugin.registerAction(cmd, settings.setup_list);
-					cmd.bindings = cmd.bindings.filter(b => b < settings.setup_list.length);
-					cmd.bindings = [...new Set(cmd.bindings)];
-					plugin.reloadSettingUI();
-				})
-			})
 }
 function genCMDSection(tab:ToggleListSettingTab){
     tab.containerEl.createEl('h3', { text: 'Bind the Commands with State Groups'})
@@ -108,6 +95,19 @@ function genCMDSection(tab:ToggleListSettingTab){
 			else{
 				tab.plugin.sendNotify("No State Groups to bind")
 			}
+		})
+	})
+	.addButton((cb) => {
+		cb.setIcon('checkmark')
+		cb.setCta()
+		cb.onClick(() => {
+			tab.plugin.settings.validate();
+			tab.plugin.unregisterActions()
+			cmd_list.forEach((cmd) => {
+				cmd.name = cmd.tmp_name
+			});
+			tab.plugin.registerActions();
+			tab.plugin.reloadSettingUI();
 		})
 	})
 
