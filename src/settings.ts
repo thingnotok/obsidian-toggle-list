@@ -119,23 +119,18 @@ export class ToggleListSettings {
 		this.setup_list = fromFile?.setup_list||[];
 	}
 	addGroup(){
-		// console.log("ToggleList: + State Group")
 		// Randomly add a state group from default
 		const idx = Math.floor(Math.random() * DEFAULT_STATEGROUP.length);
 		this.setup_list.push(new Setup(DEFAULT_STATEGROUP[idx]));
 	}
 	reset(){
-		// Empty setup lists
-		this.setup_list = []
-		// Add setup_list with default groups
-		DEFAULT_STATEGROUP.forEach(e => {
-			this.setup_list.push(new Setup(e));
+		// Initialize setup_list with default groups
+		this.setup_list = DEFAULT_STATEGROUP.map((setup)=>{
+			return new Setup(setup)
 		})
-		// Empty cmd_list
-		this.cmd_list = []
-		// Add command with default cmds
-		DEFAULT_CMD.forEach(e => {
-			this.cmd_list.push(new Command(e.index, e.name, e.bindings))
+		// Initialize cmd_list with default cmds
+		this.cmd_list = DEFAULT_CMD.map((cmd)=>{
+			return new Command(cmd.index, cmd.name, cmd.bindings)
 		})
 	}
 	updateListIndexs(){
