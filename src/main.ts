@@ -19,6 +19,8 @@ function deleteObsidianCommand(app: App, commandId: string) {
 export default class ToggleList extends Plugin {
 	settings: ToggleListSettings;
 	tab: ToggleListSettingTab;
+
+
 	async onload() {
 		await this.loadSettings();
 		this.tab = new ToggleListSettingTab(this.app, this);
@@ -26,6 +28,7 @@ export default class ToggleList extends Plugin {
 		this.registerActions();
 		this.registerEditorSuggest(new EditorSuggestor(this.app, this.settings));
 		drawDiagram("");
+		this.cleanHotkeys();
 	}
 	async loadSettings() {
 		const settings = await this.loadData();
@@ -34,6 +37,31 @@ export default class ToggleList extends Plugin {
 	}
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+	cleanHotkeys(){
+		const customKeys = this.app.hotkeyManager.customKeys
+		let cc = Object.keys(customKeys)
+	
+		for(let i = 0;i<cc.length;i++) {
+			if(cc[i].slice(0,20)=='obsidian-toggle-list'){
+				if(cc[i].slice(-4)!='Prev' && cc[i].slice(-4)!='Next'){
+					if(cc[i].slice(-4)=='-POP'){
+						const name = cc[i].slice(0,-3)+'Next'
+						customKeys[name]=customKeys[cc[i]]
+					}
+					delete customKeys[cc[i]];
+				}
+			}
+		}
+		const cmds = this.settings.cmd_list
+		cc = Object.keys(customKeys)
+		for(let i=0;i<cc.length;i++) {
+			const name = cc[i].slice(21,-5)
+			console.log(name)
+			if(!cmds.find(e=>e.name==name))
+				delete customKeys[cc[i]]
+		}
+		console.log(customKeys)
 	}
 	unregisterActions() {
 		this.settings.registedCmdName.forEach(cmd => this.unregistAction(`obsidian-toggle-list:${cmd}`));
@@ -60,7 +88,7 @@ export default class ToggleList extends Plugin {
 			name: n_name,
 			icon: 'right-arrow',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				popAction(editor, cmd, this.settings, 1)
+				popAction(editor, cmd, this.settings, 1, this.app)
 			},
 		});
 		this.addCommand({
@@ -68,7 +96,7 @@ export default class ToggleList extends Plugin {
 			name: p_name,
 			icon: 'left-arrow',
 			editorCallback: (editor: Editor, view: MarkdownView) => {
-				popAction(editor, cmd, this.settings, -1)
+				popAction(editor, cmd, this.settings, -1, this.app)
 			},
 		});
 	}

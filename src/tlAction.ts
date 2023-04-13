@@ -1,4 +1,4 @@
-import { Editor } from "obsidian";
+import { Editor ,App} from "obsidian";
 import { Command } from "./settings";
 import { ToggleListSettings, EMPTY_TOKEN, Setup } from "./settings";
 
@@ -57,21 +57,19 @@ function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, setti
 	}
 }
 
-export function popAction(editor:Editor, cmd:Command, settings:ToggleListSettings, direction:number) {
-	// triggerSuggestionEditor(editor);
-	// const selections = editor.getSelection();
-	const selections = editor.listSelections()[0]
-	console.log("selection:")
-	console.log(selections)
-	const isMultiLine = (selections.anchor.line != selections.head.line)
-	if(!isMultiLine){
-		console.log("Not multiline")
-		return triggerSuggestionEditorByToggleState(editor, cmd, settings, direction);
-	}
-	else{
-		console.log("multipline")
-		return toggleAction(editor, settings.setup_list, cmd.bindings, direction)
-	}
+export function popAction(editor:Editor, cmd:Command, settings:ToggleListSettings, direction:number, app:App) {
+
+
+	// const selections = editor.listSelections()[0]
+	// const isMultiLine = (selections.anchor.line != selections.head.line)
+	// if(!isMultiLine){
+	// 	console.log("Not multiline")
+	// 	return triggerSuggestionEditorByToggleState(editor, cmd, settings, direction);
+	// }
+	// else{
+	// 	console.log("multipline")
+	// 	return toggleAction(editor, settings.setup_list, cmd.bindings, direction)
+	// }
 }
 
 
