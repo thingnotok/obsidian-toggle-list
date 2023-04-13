@@ -61,7 +61,7 @@ export default class ToggleList extends Plugin {
 			if(!cmds.find(e=>e.name==name))
 				delete customKeys[cc[i]]
 		}
-		console.log(customKeys)
+		// console.log(customKeys)
 	}
 	unregisterActions() {
 		this.settings.registedCmdName.forEach(cmd => this.unregistAction(`obsidian-toggle-list:${cmd}`));

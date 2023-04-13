@@ -26,15 +26,7 @@ export function buildSuggestions(line_num:number, line: string, idx: number, set
     let suggestions: SuggestInfo[] = [];
     const N = setup.states.length
     const nidx = (idx+direction+N)%N
-    console.log('Starting idx should be')
-    console.log(nidx)
-    // const stateIdices = [...Array(N-nidx).keys()].map(i=>i+nidx).concat(
-    //     [...Array(nidx).keys()])
     const final = [...Array(N).keys()].map(i=>(i*direction+nidx+N)%N)
-    // console.log(stateIdices)
-    // if(direction<0)
-    //     stateIdices = stateIdices.map(i=>N-1-i)
-    console.log(final)
     for(let i = 0; i < N-1; i++) {
         const curIdx = final[i]
         suggestions.push({
@@ -94,8 +86,6 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         let state_idx = context.end.ch
         const pop_context = this.settings.pop_context
         const N = pop_context.setup.states.length
-        console.log('Get Suggestions')
-        console.log(pop_context)
 
         this.popw.incr = 0;
         state_idx += (N+pop_context.direction)%N;

@@ -30,13 +30,9 @@ function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, setti
 	// update line
 	const cursor = editor.getCursor();
 	const line = editor.getLine(cursor.line);
-	console.log('pop action')
-	console.log(cmd.bindings)
 	// Match the selected binding
 	for (let i = 0; i < cmd.bindings.length; i++) {
 		const setup = settings.setup_list[cmd.bindings[i]]
-		console.log('try')
-		console.log(setup)
 		const r = match_sg(line, setup)
 		if (r.success){
 			// Set matched Setup for suggester
@@ -58,18 +54,16 @@ function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, setti
 }
 
 export function popAction(editor:Editor, cmd:Command, settings:ToggleListSettings, direction:number, app:App) {
-
-
-	// const selections = editor.listSelections()[0]
-	// const isMultiLine = (selections.anchor.line != selections.head.line)
-	// if(!isMultiLine){
-	// 	console.log("Not multiline")
-	// 	return triggerSuggestionEditorByToggleState(editor, cmd, settings, direction);
-	// }
-	// else{
-	// 	console.log("multipline")
-	// 	return toggleAction(editor, settings.setup_list, cmd.bindings, direction)
-	// }
+	const selections = editor.listSelections()[0]
+	const isMultiLine = (selections.anchor.line != selections.head.line)
+	if(!isMultiLine){
+		// console.log("Not multiline")
+		return triggerSuggestionEditorByToggleState(editor, cmd, settings, direction);
+	}
+	else{
+		// console.log("multipline")
+		return toggleAction(editor, settings.setup_list, cmd.bindings, direction)
+	}
 }
 
 
@@ -182,10 +176,6 @@ export function match_sg(text: string, setup: Setup){
 }
 
 export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[], direction: number) {
-	// console.log('action')
-	// console.log(setup)
-	console.log("Toggle Action")
-	console.log(bindings)
 	let selection = editor.listSelections()[0];
 	let cursor = editor.getCursor();
 	let set_cur = false;
