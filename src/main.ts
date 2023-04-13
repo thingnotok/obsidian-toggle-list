@@ -47,47 +47,30 @@ export default class ToggleList extends Plugin {
 		const reg = Array<string>();
 		this.settings.cmd_list.forEach(cmd => {
 			this.registerAction(cmd, sg_list)
-			if(cmd.isPopOver)
-				reg.push(`${cmd.name}-POP`)
-			else{
-				reg.push(`${cmd.name}-Next`)
-				reg.push(`${cmd.name}-Prev`)
-			}
+			reg.push(`${cmd.name}-Next`)
+			reg.push(`${cmd.name}-Prev`)
 		})
 		this.settings.registedCmdName = reg
 	}
-	registerAction(action: Command, sg_list: Array<Setup>) {
-		const n_name = `${action.name}-Next`
-		const p_name = `${action.name}-Prev`
-		const pop_name = `${action.name}-POP`
-		if(action.isPopOver){
-			this.addCommand({
-				id: pop_name,
-				name: pop_name,
-				icon: 'top-arrow',
-				editorCallback: (editor: Editor, view: MarkdownView) => {
-					popAction(editor, action, this.settings)
-				},
-			});
-		}
-		else{
-			this.addCommand({
-				id: n_name,
-				name: n_name,
-				icon: 'right-arrow',
-				editorCallback: (editor: Editor, view: MarkdownView) => {
-					toggleAction(editor, sg_list, action.bindings, 1)
-				},
-			});
-			this.addCommand({
-				id: p_name,
-				name: p_name,
-				icon: 'left-arrow',
-				editorCallback: (editor: Editor, view: MarkdownView) => {
-					toggleAction(editor, sg_list, action.bindings, -1)
-				},
-			});
-		}
+	registerAction(cmd: Command, sg_list: Array<Setup>) {
+		const n_name = `${cmd.name}-Next`
+		const p_name = `${cmd.name}-Prev`
+		this.addCommand({
+			id: n_name,
+			name: n_name,
+			icon: 'right-arrow',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				popAction(editor, cmd, this.settings, 1)
+			},
+		});
+		this.addCommand({
+			id: p_name,
+			name: p_name,
+			icon: 'left-arrow',
+			editorCallback: (editor: Editor, view: MarkdownView) => {
+				popAction(editor, cmd, this.settings, -1)
+			},
+		});
 	}
 	checkNreload(){
 		this.settings.validate();

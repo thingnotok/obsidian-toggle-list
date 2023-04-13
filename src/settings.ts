@@ -46,7 +46,7 @@ const DEFAULT_CMD = [
 		pop: false,
 		name: 'Task + Callout',
 		tmp_name: 'Task + Callout',
-		bindings: [0, 2]
+		bindings: [2, 0]
 	}
 
 ]
@@ -102,9 +102,9 @@ export class Command {
 	}
 }
 interface PopContext{
-	stateIdx: number;
-	cmd: Command
+	stateIdx: number
 	setup: Setup
+	direction: number
 }
 
 export class ToggleListSettings {

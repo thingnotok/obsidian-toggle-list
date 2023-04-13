@@ -22,17 +22,21 @@ export type SuggestInfoWithContext = SuggestInfo & {
     context: EditorSuggestContext;
 };
 
-
-export function buildSuggestions(line_num:number, line: string, idx: number, setup: Setup): SuggestInfo[] {
+export function buildSuggestions(line_num:number, line: string, idx: number, setup: Setup, direction:number): SuggestInfo[] {
     let suggestions: SuggestInfo[] = [];
     const N = setup.states.length
-    const nidx = idx+1==N ? 0 : idx+1
-    const stateIdices = [...Array(N-nidx).keys()].map(i=>i+nidx).concat(
-        [...Array(nidx).keys()])
-    console.log("building with indice:")
-    console.log(stateIdices)
-    for(let i = 0; i < N; i++) {
-        const curIdx = stateIdices[i]
+    const nidx = (idx+direction+N)%N
+    console.log('Starting idx should be')
+    console.log(nidx)
+    // const stateIdices = [...Array(N-nidx).keys()].map(i=>i+nidx).concat(
+    //     [...Array(nidx).keys()])
+    const final = [...Array(N).keys()].map(i=>(i*direction+nidx+N)%N)
+    // console.log(stateIdices)
+    // if(direction<0)
+    //     stateIdices = stateIdices.map(i=>N-1-i)
+    console.log(final)
+    for(let i = 0; i < N-1; i++) {
+        const curIdx = final[i]
         suggestions.push({
             displayText: setup.states[curIdx],
             appendText: line,
@@ -89,19 +93,15 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         const line_idx = context.start.line
         let state_idx = context.end.ch
         const pop_context = this.settings.pop_context
+        const N = pop_context.setup.states.length
         console.log('Get Suggestions')
         console.log(pop_context)
 
         this.popw.incr = 0;
-        state_idx += 1;
-        if(state_idx>=pop_context.setup.states.length){
-            state_idx -= pop_context.setup.states.length;
-        }
-        if(this.popw.incr==pop_context.setup.states.length)
-            this.popw.incr = 0;
+        state_idx += (N+pop_context.direction)%N;
 
         const suggestions: SuggestInfo[] = buildSuggestions(
-            line_idx, line, state_idx, pop_context.setup);
+            line_idx, line, state_idx, pop_context.setup, pop_context.direction);
         
         // Add the editor context to all the suggestions
         const suggestionsWithContext: SuggestInfoWithContext[] = [];
@@ -120,7 +120,6 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         const line = value.appendText;
         const cur_steup = this.settings.pop_context.setup
         const r = processOneLine2(line, cur_steup, value.insertSkip||0)
-        // console.log(r)
         const line_idx = value.insertAt||0
         const cursor = editor.getCursor();
         editor.setLine(line_idx, r.content);
