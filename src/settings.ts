@@ -101,12 +101,16 @@ export class Command {
 		this.isPopOver = cmd.isPopOver||false;
 	}
 }
+interface PopContext{
+	stateIdx: number;
+	cmd: Command
+	setup: Setup
+}
 
 export class ToggleListSettings {
 	setup_list: Array<Setup>;
 	cmd_list: Array<Command>;
-	cur_cmd: Command;
-	cur_setup: Setup;
+	pop_context: PopContext;
 	pop_state: PopState;
 	plot: boolean;
 	registedCmdName: Array<string>;

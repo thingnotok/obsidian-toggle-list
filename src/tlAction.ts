@@ -26,10 +26,35 @@ function triggerSuggestionEditor(editor: Editor){
 	editor.replaceRange("", cur, next);
 }
 
+function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, settings:ToggleListSettings){
+	// update line
+	const cursor = editor.getCursor();
+	const line = editor.getLine(cursor.line);
+	const bindings = cmd.bindings
+	// Match the selected binding
+	for (let i = 0; i < bindings.length; i++) {
+		const setup = settings.setup_list[bindings[i]]
+		const r = match_sg(line, setup)
+		if (r.success){
+			// Set matched Setup for suggester
+			// settings.cur_setup = setup
+			const stateIdx = r.offset
+			const result = processOneLine(line, setup, 1)
+			editor.setLine(cursor.line, result.content);
+			const ch = (cursor.ch+result.offset > result.content.length) ? 
+	        result.content.length : cursor.ch+result.offset
+			editor.setCursor(cursor.line, ch);
+			//register current state for suggestions
+			settings.pop_state.hot = true;
+			// settings.cur_cmd = action;
+			settings.pop_context = {cmd, setup, stateIdx}
+		} 
+	}
+}
+
 export function popAction(editor:Editor, action:Command, settings:ToggleListSettings) {
-	triggerSuggestionEditor(editor);
-	settings.pop_state.hot = true;
-	settings.cur_cmd = action;
+	// triggerSuggestionEditor(editor);
+	triggerSuggestionEditorByToggleState(editor, action, settings);
 }
 
 
@@ -116,7 +141,7 @@ export function processOneLine2(text: string, setup: Setup, toIdx: number) {
 	return { success: true, content: new_text, offset: offset}
 }
 
-function processOneLine(text: string, setup: Setup, direction: number) {
+export function processOneLine(text: string, setup: Setup, direction: number) {
 	const cur_match = getCurrentState(text, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
 		return { success: false, content: text, offset: 0 }
@@ -137,6 +162,7 @@ export function match_sg(text: string, setup: Setup){
 	}
 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
 	const cur_pair = separatePreSur(setup.states[cur_idx])
+	// match status, current state pair, state_index
 	return { success: true, content: cur_pair[0], offset: cur_idx }
 }
 
