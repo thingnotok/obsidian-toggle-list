@@ -16,7 +16,7 @@ ToggleList provides the following features:
 
 3. Prefix and Suffix Support. State `PRE||SUF` can match `PRExxx line contents xxxSUF`.
 
-4. Suggestion mode. 
+4. Suggestion window: turn on suggestion for commands so the whole state group with show in suggestion window for quick access. 
 
 	https://user-images.githubusercontent.com/29173832/221370021-9646a62b-ad31-4212-a850-71919d8a9db7.mov
 
@@ -59,6 +59,13 @@ Here's why checkboxes need more states and how to query these customized states:
 
 
 ## Changelog
+[1.2.0]
+---
+- merge suggesiton window action with regular action.
+	- custom hotkey for pop command will be automatically assigned to Next action.
+	- commands without iPopOver will not be affected.
+	- If the upgrade break your setting, I'm really sorry, and please leave a issue so I can help you.
+
 [1.1.3]
 ---
 - resolve the performance issue #14

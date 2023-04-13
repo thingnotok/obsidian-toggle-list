@@ -39,6 +39,7 @@ export default class ToggleList extends Plugin {
 		await this.saveData(this.settings);
 	}
 	cleanHotkeys(){
+		// @ts-ignore
 		const customKeys = this.app.hotkeyManager.customKeys
 		let cc = Object.keys(customKeys)
 	
