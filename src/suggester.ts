@@ -118,7 +118,8 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
     selectSuggestion(value: SuggestInfoWithContext, _evt: MouseEvent | KeyboardEvent) {
         const editor = value.context.editor;
         const line = value.appendText;
-        const r = processOneLine2(line, this.settings.cur_setup, value.insertSkip||0)
+        const cur_steup = this.settings.pop_context.setup
+        const r = processOneLine2(line, cur_steup, value.insertSkip||0)
         // console.log(r)
         const line_idx = value.insertAt||0
         const cursor = editor.getCursor();
