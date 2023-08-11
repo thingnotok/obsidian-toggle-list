@@ -74,7 +74,7 @@ function addCmdUI(tab:ToggleListSettingTab, cmd:Command, cmdIdx:number){
 function genCMDSection(tab:ToggleListSettingTab){
     tab.containerEl.createEl('h3', { text: 'Bind the Commands with State Groups'})
 	tab.containerEl.createEl('p', { text: 'Order of bindings matters if two SG share the same states'})
-	tab.containerEl.createEl('p', { text: 'Trun on suggestion will show a suggetion window to access all states'})
+	tab.containerEl.createEl('p', { text: 'Turn on suggestion will show a suggestion window to access all states'})
 	tab.containerEl.createEl('p', { text: `[Suggection] [Name] [Binding SG]`})
     const cmd_list = tab.plugin.settings.cmd_list
 	for (let i = 0; i < cmd_list.length; i++) {
