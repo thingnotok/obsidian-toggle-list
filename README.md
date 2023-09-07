@@ -28,7 +28,7 @@ ToggleList provides the following features:
 	![image](https://user-images.githubusercontent.com/29173832/221369660-5600d76d-b8ac-4354-b4cc-11457c1527db.png)
 
 
-6. Togglelist works as a handy tool to setup contents in other plugins, check [Working with other Plugins](https://github.com/thingnotok/obsidian-toggle-list/doc/other_plugin.md) for more examples
+6. Togglelist works as a handy tool to setup contents in other plugins, check [Working with other Plugins](https://github.com/thingnotok/obsidian-toggle-list/blob/master/doc/other_plugin.md) for more examples
 
 Here's why checkboxes need more states and how to query these customized states:
 
