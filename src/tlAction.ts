@@ -2,13 +2,52 @@ import { Editor ,App} from "obsidian";
 import { Command } from "./settings";
 import { ToggleListSettings, EMPTY_TOKEN, Setup } from "./settings";
 
-const SUR_DICT = new Map([
-	['{tasks-today}', getTasksSuffix],
-]);
+const timeFormats = [
+    { rule: /\\{time:: YYYY-MM-DD hh:mm\\}/, pattern: "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}" },
+    { rule: /\\{time:: YYYY-MM-DD\\}/, pattern: "\\d{4}-\\d{2}-\\d{2}" },
+    { rule: /\\{time:: hh:mm:ss\\}/, pattern: "\\d{2}:\\d{2}:\\d{2}" },
+    { rule: /\\{time:: hh:mm\\}/, pattern: "\\d{2}:\\d{2}" },
+    { rule: /\\{time:: YYYY-MM\\}/, pattern: "\\d{4}-\\d{2}" },
+    { rule: /\\{time:: MM-DD\\}/, pattern: "\\d{2}-\\d{2}" },
+    { rule: /\\{time:: YYYY\\}/, pattern: "\\d{4}" },
+    { rule: /\\{time:: MM\\}/, pattern: "\\d{2}" },
+    { rule: /\\{time:: DD\\}/, pattern: "\\d{2}" },
+    { rule: /\\{time:: hh\\}/, pattern: "\\d{2}" },
+    { rule: /\\{time:: mm\\}/, pattern: "\\d{2}" },
+    { rule: /\\{time:: ss\\}/, pattern: "\\d{2}" }
+];
 
-const REG_DICT = [
-	{ rule: /\\{tasks-today\\}/, pattern: "[0-9]{4}-[0-9]{2}-[0-9]{2}" }
-]
+function formatDate(format: String, date = new Date()) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1; // 0-based index
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+
+    const replacements = {
+        'YYYY': year,
+        'YY': String(year).slice(-2),
+        'MM': month.toString().padStart(2, '0'),
+        'DD': day.toString().padStart(2, '0'),
+        'hh': hours.toString().padStart(2, '0'),
+        'mm': minutes.toString().padStart(2, '0'),
+        'ss': seconds.toString().padStart(2, '0'),
+        'M': month,
+        'D': day,
+        'h': hours,
+        'm': minutes,
+        's': seconds
+    };
+
+    let formattedDate = format;
+    for (let key in replacements) {
+        formattedDate = formattedDate.replace(key, replacements[key]);
+    }
+
+    return formattedDate;
+}
+
 
 function getDate() {
 	// Return Date in YYYY-MM-DD format.
@@ -79,15 +118,26 @@ export function renderEmptyLine(text: string): string{
 	return result
 }
 
+function getFormatTime(time_format: string){
+	const now = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+	const convertTime = formatDate(time_format, now) || ""
+	return convertTime
+}
+
 function parseSuffix(text: string) {
 	// Check if next state use {date}
-	const regex = /(\{.*\})/;
+	const regex = /\{(.*)\}/;
 	const ff = text.match(regex);
 	const found = ff || [];
 	let suffix = text
-	if (found.length > 0) { //yes use {date}
-		const date_txt = (SUR_DICT.get(found[1]) || (() => ""))() || ""
-		suffix = suffix.replace(found[1], date_txt);
+	if (found.length > 0) { //detect special format
+		const tag = found[1]
+		const tag_ = tag.split(':: ')
+		const time_format = tag_[1]
+		const convertTime = getFormatTime(time_format)
+		console.log(convertTime)
+		// const date_txt = (SUR_DICT.get(found[1]) || (() => ""))() || ""
+		suffix = suffix.replace("{"+found[1]+"}", convertTime);
 	}
 	return suffix
 }
@@ -101,8 +151,8 @@ function ChangeState(text: string, prev: Array<string>, next: Array<string>) {
 function getRegExp(text: string) {
 	let t = text || ""
 	t = t.replace(/([\.\+\*\?\^\$\(\)\[\]\{\}\|\\])/g, "\\$1")
-	for (let i = 0; i < REG_DICT.length; i++)
-		t = t.replace(REG_DICT[i].rule, REG_DICT[i].pattern)
+	for (let i = 0; i < timeFormats.length; i++)
+		t = t.replace(timeFormats[i].rule, timeFormats[i].pattern)
 	return t
 }
 
@@ -115,8 +165,8 @@ function getCurrentState(text: string, states: Array<string>) {
 
 		let state_regex = new RegExp(`^(\\s*)${prefix}(.*)${suffix}$`);
 		const result = text.match(state_regex) || []
-		// console.log(state_regex)
-		// console.log(result)
+		console.log(state_regex)
+		console.log(result)
 		if (result.length > 0) {
 			// console.log(`${prefix}::${result[2]}||${suffix}`)
 			return { sorted_idx: i, raw: result[2], idents: result[1] }
