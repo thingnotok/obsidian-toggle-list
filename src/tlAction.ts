@@ -7,7 +7,7 @@ const SUR_DICT = new Map([
 ]);
 
 const REG_DICT = [
-	{ rule: /\\{tasks-today\\}/, pattern: "✅ [0-9]{4}-[0-9]{2}-[0-9]{2}" }
+	{ rule: /\\{tasks-today\\}/, pattern: "[0-9]{4}-[0-9]{2}-[0-9]{2}" }
 ]
 
 function getDate() {
@@ -17,7 +17,7 @@ function getDate() {
 	return localDate
 }
 function getTasksSuffix() {
-	return " ✅ " + getDate()
+	return getDate()
 }
 
 function triggerSuggestionEditor(editor: Editor){
@@ -80,12 +80,14 @@ export function renderEmptyLine(text: string): string{
 }
 
 function parseSuffix(text: string) {
+	// Check if next state use {date}
 	const regex = /(\{.*\})/;
 	const ff = text.match(regex);
 	const found = ff || [];
 	let suffix = text
-	if (found.length > 0) {
-		suffix = (SUR_DICT.get(found[1]) || (() => ""))() || suffix;
+	if (found.length > 0) { //yes use {date}
+		const date_txt = (SUR_DICT.get(found[1]) || (() => ""))() || ""
+		suffix = suffix.replace(found[1], date_txt);
 	}
 	return suffix
 }
