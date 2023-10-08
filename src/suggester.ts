@@ -57,25 +57,6 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
             const context = this.settings.pop_context
             const line = editor.getLine(cursor.line);
             return {start: cursor, end:{line: cursor.line, ch:context.stateIdx}, query:line}
-            // const line = editor.getLine(cursor.line);
-            // const bindings = this.settings.cur_cmd.bindings
-            // // Match the selected binding
-            // for (let i = 0; i < bindings.length; i++) {
-            //     const setup = this.settings.setup_list[bindings[i]]
-            //     const r = match_sg(line, setup)
-            //     if (r.success){
-            //         // Set matched Setup for suggester
-            //         this.settings.cur_setup = setup
-            //         return {
-            //             start: cursor,
-            //             end: {
-            //                 line: cursor.line,
-            //                 ch: r.offset,
-            //             },
-            //             query: line,
-            //         };
-            //     } 
-            // } 
         }
         return null;
     }

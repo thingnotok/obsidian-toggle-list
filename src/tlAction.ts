@@ -124,7 +124,7 @@ function getFormatTime(time_format: string){
 	return convertTime
 }
 
-function parseSuffix(text: string) {
+function applyTimeFormats(text: string) {
 	// Check if next state use {date}
 	const regex = /\{(.*)\}/;
 	const ff = text.match(regex);
@@ -135,7 +135,6 @@ function parseSuffix(text: string) {
 		const tag_ = tag.split(':: ')
 		const time_format = tag_[1]
 		const convertTime = getFormatTime(time_format)
-		console.log(convertTime)
 		// const date_txt = (SUR_DICT.get(found[1]) || (() => ""))() || ""
 		suffix = suffix.replace("{"+found[1]+"}", convertTime);
 	}
@@ -143,8 +142,8 @@ function parseSuffix(text: string) {
 }
 
 function ChangeState(text: string, prev: Array<string>, next: Array<string>) {
-	const pre = next[0] || ""
-	const sur = parseSuffix(next[1]) || ""
+	const pre = applyTimeFormats(next[0]) || ""
+	const sur = applyTimeFormats(next[1]) || ""
 	return pre + text + sur
 }
 
@@ -162,13 +161,9 @@ function getCurrentState(text: string, states: Array<string>) {
 		const s = states[i].split('||');
 		const prefix = getRegExp(s[0])
 		const suffix = getRegExp(s[1])
-
 		let state_regex = new RegExp(`^(\\s*)${prefix}(.*)${suffix}$`);
 		const result = text.match(state_regex) || []
-		console.log(state_regex)
-		console.log(result)
 		if (result.length > 0) {
-			// console.log(`${prefix}::${result[2]}||${suffix}`)
 			return { sorted_idx: i, raw: result[2], idents: result[1] }
 		}
 	}
@@ -200,12 +195,17 @@ export function processOneLine2(text: string, setup: Setup, toIdx: number) {
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
-	const offset = next_pair[0].length - cur_pair[0].length
+	let next_txt = next_pair[0]
+	next_txt = applyTimeFormats(next_txt)
+	let cur_txt = cur_pair[0]
+	cur_txt = applyTimeFormats(cur_txt)
+	const offset = next_txt.length - cur_txt.length
 	return { success: true, content: new_text, offset: offset}
 }
 
 export function processOneLine(text: string, setup: Setup, direction: number) {
 	const cur_match = getCurrentState(text, setup.sorteds);
+	console.log("🧐>"+cur_match.raw)
 	if (cur_match.sorted_idx < 0) {
 		return { success: false, content: text, offset: 0 }
 	}
@@ -214,7 +214,13 @@ export function processOneLine(text: string, setup: Setup, direction: number) {
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
-	const offset = next_pair[0].length - cur_pair[0].length
+	let next_txt = next_pair[0]
+	next_txt = applyTimeFormats(next_txt)
+	let cur_txt = cur_pair[0]
+	cur_txt = applyTimeFormats(cur_txt)
+	const offset = next_txt.length - cur_txt.length
+	// const offset = next_pair[0].length - cur_pair[0].length
+	console.log(offset)
 	return { success: true, content: new_text, offset: offset}
 }
 
@@ -247,19 +253,12 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 	}
 	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		// console.log("processing: " + origin)
-		// console.log("bindings=" + bindings)
 		let r = { success: false, content: origin, offset: 0 }
 		for (let i = 0; i < bindings.length; i++) {
-			// console.log("bindins:" + i)
 			r = processOneLine(origin, sg_list[bindings[i]], direction);
-			// console.log(sg_list[bindings[i]])
-			// console.log(r)
 			if (r.success)
 				break;
 		}
-		// console.log(r)
-		// const r = updateState(origin);
 		editor.setLine(i, r.content);
 
 		if (i == cursor.line) {
@@ -269,7 +268,6 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 				cursor.ch = r.content.length
 			else
 				cursor.ch = cursor.ch + r.offset;
-			// console.log("Cursor=" + cursor.ch)
 		}
 		if (i == head) {
 			if (selection.head.ch < -r.offset)
