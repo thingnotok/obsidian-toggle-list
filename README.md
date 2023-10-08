@@ -14,7 +14,12 @@ ToggleList provides the following features:
 	- Task group: [`- [ ] `, ` - [/] `, ` - [x] `]
 	- Highlight group: [`- [i] `, ` - [!] `, ` - [?] `]
 
-3. Prefix and Suffix Support. State `PRE||SUF` can match `PRExxx line contents xxxSUF`.
+3. Prefix and Suffix Support. State `Prefix||Suffix` can match `Prefix line contents Suffix`.
+	- Timestamp can be used in both **Prefix** and **Suffix**  using {time:: time-format}, e.q. {time:: YYYY-MM-DD}. Supported time format can be found in [Supported Time Format](https://github.com/thingnotok/obsidian-toggle-list/blob/master/doc/time_format.md).
+	- Use cases
+		- Task created / completed: `- [ ] || ➕[[{time:: YYYY-MM-DD}]]` / `- [ ] || ✅ {time:: YYYY-MM-DD}` ([Tasks](https://github.com/obsidian-tasks-group/obsidian-tasks)' style)
+		- [Interstitial journaling](https://nesslabs.com/interstitial-journaling): `- **{time:: hh:mm}** `
+
 
 4. Suggestion window: turn on suggestion for commands so the whole state group with show in suggestion window for quick access. 
 
@@ -59,6 +64,14 @@ Here's why checkboxes need more states and how to query these customized states:
 
 
 ## Changelog
+
+[1.2.1]
+---
+- Time related update
+	- Timestamps in states can now be customized with {time:: YYYY-MM-DD hh:mm:ss}
+		- old settings `{tasks-today}` will be automatically converted to `✅ {time:: YYYY-MM-DD}`
+	- Fix date error for #23 (possibly)
+
 [1.2.0]
 ---
 - merge suggesiton window action with regular action.

@@ -3,7 +3,7 @@
 ### Using Prefix and Suffix to management list attributes
 
 - Working with the Tasks Plugin:
-    - By adding {tasks-today} as a suffix in the "done" state, ToggleList can support the [Tasks plugin](https://github.com/obsidian-tasks-group/obsidian-tasks), allowing you to toggle a line through a paragraph, list, todo, or done state while keeping task attributes. Multiline support is also available.
+    - By adding `✅ {time:: YYYY-MM-DD}` as a suffix in the "done" state, ToggleList can support the [Tasks plugin](https://github.com/obsidian-tasks-group/obsidian-tasks), allowing you to toggle a line through a paragraph, list, todo, or done state while keeping task attributes. Multiline support is also available.
     - Example:
         <img src="https://github.com/thingnotok/obsidian-toggle-list/blob/master/resources/example_tasks.png" width="440"> 
 

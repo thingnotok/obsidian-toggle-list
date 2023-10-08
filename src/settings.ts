@@ -52,6 +52,7 @@ const DEFAULT_CMD = [
 ]
 
 export const EMPTY_TOKEN = '{PARAGRAPH}'
+const OLD_DATE = '{tasks-today}'
 export class PopState {
 	popon: boolean; //flag to indicate popover suggestor is on
 	hot: boolean; // flag to indicate suggestor is triggered by command
@@ -76,6 +77,7 @@ export class Setup {
 	}
 	update(text: string=""){
 		this.all_states = text.replace(EMPTY_TOKEN, "")
+		this.all_states = text.replace(OLD_DATE, "✅ {time:: YYYY-MM-DD}")
 		this.states = this.all_states.split('\n')
 		const ori_states = this.states
 		const tmp = new Map();
