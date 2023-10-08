@@ -77,7 +77,7 @@ export class Setup {
 	}
 	update(text: string=""){
 		this.all_states = text.replace(EMPTY_TOKEN, "")
-		this.all_states = text.replace(OLD_DATE, "✅ {time:: YYYY-MM-DD}")
+		this.all_states = this.all_states.replace(OLD_DATE, "✅ {time:: YYYY-MM-DD}")
 		this.states = this.all_states.split('\n')
 		const ori_states = this.states
 		const tmp = new Map();

@@ -126,7 +126,7 @@ function getFormatTime(time_format: string): string{
 
 function applyTimeFormats(text: string) {
 	// Check if next state use {date}
-	const regex = /\{(.*)\}/;
+	const regex = /\{(time::.*)\}/;
 	const ff = text.match(regex);
 	const found = ff || [];
 	let suffix = text
