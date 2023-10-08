@@ -4,7 +4,7 @@
 import { App, Editor, EditorSuggest, TFile, } from 'obsidian';
 import type { EditorPosition, EditorSuggestContext, EditorSuggestTriggerInfo } from 'obsidian';
 import {ToggleListSettings, Setup, PopState} from 'src/settings'
-import {match_sg, processOneLine, processOneLine2} from 'src/tlAction'
+import {processOneLine} from 'src/tlAction'
 
 export type SuggestInfo = {
     suggestionType?: 'match' | 'default' | 'empty';
@@ -90,7 +90,7 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         const editor = value.context.editor;
         const line = value.appendText;
         const cur_steup = this.settings.pop_context.setup
-        const r = processOneLine2(line, cur_steup, value.insertSkip||0)
+        const r = processOneLine(line, cur_steup, value.insertSkip||0, 1)
         const line_idx = value.insertAt||0
         const cursor = editor.getCursor();
         editor.setLine(line_idx, r.content);

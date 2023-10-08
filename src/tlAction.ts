@@ -17,7 +17,7 @@ const timeFormats = [
     { rule: /\\{time:: ss\\}/, pattern: "\\d{2}" }
 ];
 
-function formatDate(format: String, date = new Date()) {
+function formatDate(format: string, date = new Date()) {
     const day = date.getDate();
     const month = date.getMonth() + 1; // 0-based index
     const year = date.getFullYear();
@@ -25,19 +25,19 @@ function formatDate(format: String, date = new Date()) {
     const minutes = date.getMinutes();
     const seconds = date.getSeconds();
 
-    const replacements = {
-        'YYYY': year,
+    const replacements: { [key: string]: string } = {
+        'YYYY': year.toString(),
         'YY': String(year).slice(-2),
         'MM': month.toString().padStart(2, '0'),
         'DD': day.toString().padStart(2, '0'),
         'hh': hours.toString().padStart(2, '0'),
         'mm': minutes.toString().padStart(2, '0'),
         'ss': seconds.toString().padStart(2, '0'),
-        'M': month,
-        'D': day,
-        'h': hours,
-        'm': minutes,
-        's': seconds
+        'M': month.toString(),
+        'D': day.toString(),
+        'h': hours.toString(),
+        'm': minutes.toString(),
+        's': seconds.toString()
     };
 
     let formattedDate = format;
@@ -79,7 +79,7 @@ function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, setti
 			// Set matched Setup for suggester
 			// settings.cur_setup = setup
 			const stateIdx = r.offset
-			const result = processOneLine(line, setup, direction)
+			const result = processOneLine(line, setup, -1, direction)
 			editor.setLine(cursor.line, result.content);
 			const ch = (cursor.ch+result.offset > result.content.length) ? 
 	        result.content.length : cursor.ch+result.offset
@@ -118,7 +118,7 @@ export function renderEmptyLine(text: string): string{
 	return result
 }
 
-function getFormatTime(time_format: string){
+function getFormatTime(time_format: string): string{
 	const now = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
 	const convertTime = formatDate(time_format, now) || ""
 	return convertTime
@@ -185,13 +185,15 @@ function roundAdd(a: number, b: number, low: number, high: number): number {
 	return result
 }
 
-export function processOneLine2(text: string, setup: Setup, toIdx: number) {
+export function processOneLine(text: string, setup: Setup, specifyIdx: number, direction: number){
 	const cur_match = getCurrentState(text, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
 		return { success: false, content: text, offset: 0 }
 	}
 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
-	const next_idx = toIdx
+	let next_idx = specifyIdx
+	if(specifyIdx<0)
+		next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
@@ -203,26 +205,44 @@ export function processOneLine2(text: string, setup: Setup, toIdx: number) {
 	return { success: true, content: new_text, offset: offset}
 }
 
-export function processOneLine(text: string, setup: Setup, direction: number) {
-	const cur_match = getCurrentState(text, setup.sorteds);
-	console.log("🧐>"+cur_match.raw)
-	if (cur_match.sorted_idx < 0) {
-		return { success: false, content: text, offset: 0 }
-	}
-	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
-	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
-	const cur_pair = separatePreSur(setup.states[cur_idx])
-	const next_pair = separatePreSur(setup.states[next_idx])
-	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
-	let next_txt = next_pair[0]
-	next_txt = applyTimeFormats(next_txt)
-	let cur_txt = cur_pair[0]
-	cur_txt = applyTimeFormats(cur_txt)
-	const offset = next_txt.length - cur_txt.length
-	// const offset = next_pair[0].length - cur_pair[0].length
-	console.log(offset)
-	return { success: true, content: new_text, offset: offset}
-}
+// export function processOneLine2(text: string, setup: Setup, toIdx: number) {
+// 	const cur_match = getCurrentState(text, setup.sorteds);
+// 	if (cur_match.sorted_idx < 0) {
+// 		return { success: false, content: text, offset: 0 }
+// 	}
+// 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
+// 	const next_idx = toIdx
+// 	const cur_pair = separatePreSur(setup.states[cur_idx])
+// 	const next_pair = separatePreSur(setup.states[next_idx])
+// 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
+// 	let next_txt = next_pair[0]
+// 	next_txt = applyTimeFormats(next_txt)
+// 	let cur_txt = cur_pair[0]
+// 	cur_txt = applyTimeFormats(cur_txt)
+// 	const offset = next_txt.length - cur_txt.length
+// 	return { success: true, content: new_text, offset: offset}
+// }
+
+// export function processOneLine(text: string, setup: Setup, direction: number) {
+// 	const cur_match = getCurrentState(text, setup.sorteds);
+// 	console.log("🧐>"+cur_match.raw)
+// 	if (cur_match.sorted_idx < 0) {
+// 		return { success: false, content: text, offset: 0 }
+// 	}
+// 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
+// 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
+// 	const cur_pair = separatePreSur(setup.states[cur_idx])
+// 	const next_pair = separatePreSur(setup.states[next_idx])
+// 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
+// 	let next_txt = next_pair[0]
+// 	next_txt = applyTimeFormats(next_txt)
+// 	let cur_txt = cur_pair[0]
+// 	cur_txt = applyTimeFormats(cur_txt)
+// 	const offset = next_txt.length - cur_txt.length
+// 	// const offset = next_pair[0].length - cur_pair[0].length
+// 	console.log(offset)
+// 	return { success: true, content: new_text, offset: offset}
+// }
 
 export function match_sg(text: string, setup: Setup){
 	const cur_match = getCurrentState(text, setup.sorteds);
@@ -255,7 +275,7 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 		const origin = editor.getLine(i);
 		let r = { success: false, content: origin, offset: 0 }
 		for (let i = 0; i < bindings.length; i++) {
-			r = processOneLine(origin, sg_list[bindings[i]], direction);
+			r = processOneLine(origin, sg_list[bindings[i]], -1, direction);
 			if (r.success)
 				break;
 		}
