@@ -12,7 +12,9 @@ const REG_DICT = [
 
 function getDate() {
 	// Return Date in YYYY-MM-DD format.
-	return new Date().toJSON().slice(0, 10)
+	// Fix Date with time zone offset
+	const localDate = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+	return localDate
 }
 function getTasksSuffix() {
 	return " ✅ " + getDate()
