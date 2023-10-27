@@ -17,7 +17,7 @@ const timeFormats = [
     { rule: /\\{time:: ss\\}/, pattern: "\\d{2}" }
 ];
 
-function formatDate(format: string, date = new Date()) {
+function formatDate(format: string, date: Date) {
     const day = date.getDate();
     const month = date.getMonth() + 1; // 0-based index
     const year = date.getFullYear();
@@ -119,7 +119,8 @@ export function renderEmptyLine(text: string): string{
 }
 
 function getFormatTime(time_format: string): string{
-	const now = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+	// const now = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+	const now = new Date(new Date().getTime())
 	const convertTime = formatDate(time_format, now) || ""
 	return convertTime
 }
