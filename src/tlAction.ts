@@ -220,11 +220,19 @@ function getBlkID(line: string): { blockId: string, lineWithoutBlockId: string }
     return { blockId, lineWithoutBlockId };
 }
 
-export function processOneLine(text: string, setup: Setup, specifyIdx: number, direction: number){
+interface processResult {
+    success: boolean;
+    content: string; // Replace with actual type of 'new_text'
+    offset: number; // Replace with actual type of 'offset'
+    origin_set: { x: number; a: number; y: number; z: number };
+    new_set: { x: number; a: number; y: number; z: number };
+}
+
+export function processOneLine(text: string, setup: Setup, specifyIdx: number, direction: number): processResult{
 	const { blockId, lineWithoutBlockId } = getBlkID(text);
 	const cur_match = getCurrentState(lineWithoutBlockId, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
-		return { success: false, content: lineWithoutBlockId, offset: 0 }
+		return { success: false, content: lineWithoutBlockId, offset: 0, origin_set: {x:0, a:0, y:0, z:0}, new_set: {x:0, a:0, y:0, z:0}}
 	}
 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
 	let next_idx = specifyIdx
