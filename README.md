@@ -65,6 +65,16 @@ Here's why checkboxes need more states and how to query these customized states:
 
 ## Changelog
 
+[1.2.3]
+---
+- Add blockID support
+	- toggling states will not mess with blockID now
+	- Cursor location rule
+		- if cursor is in prefix, it will be moved to the head of the content
+		- if cursor is in content, it will stay at the same location w.r.t the content
+		- if cursor is in surfix, it will be moved to the end of the content
+		- if cursor is in blockID, it will be moved to the end of the line
+
 [1.2.1]
 ---
 - Time related update
