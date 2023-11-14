@@ -1,4 +1,4 @@
-import { Editor ,App} from "obsidian";
+import { Editor ,App, EditorPosition} from "obsidian";
 import { Command } from "./settings";
 import { ToggleListSettings, EMPTY_TOKEN, Setup } from "./settings";
 
@@ -66,7 +66,28 @@ function triggerSuggestionEditor(editor: Editor){
 	next.ch = cur.ch + 1;
 	editor.replaceRange("", cur, next);
 }
-
+function setupCursor(cursor:EditorPosition, offset:number, origin_set: {x:number, a:number, y:number, z:number}, new_set: {x:number, a:number, y:number, z:number}){
+	// cursor in prefix, move to head of content
+	const x0 = (origin_set?.x||0)
+	const y0 = (origin_set?.y||0)
+	const x1 = (new_set?.x||0)
+	const y1 = (new_set?.y||0)
+	const a = (origin_set?.a ||0)
+	const z = (origin_set?.z ||0)
+	// cursor in prefix, move to head of content
+	if(cursor.ch <= x0)
+		cursor.ch = x1
+	// cursor in content, keep in the same location of content
+	else if (cursor.ch <=(x0+a))
+		cursor.ch = cursor.ch+offset
+	// cursor in surfix, move to end of content
+	else if (cursor.ch> (x0+a) && cursor.ch <=(x0+a+y0))
+		cursor.ch = x1+a
+	// cursor in blkID, move to end of line
+	else
+		cursor.ch = (x1+a+y1+z)
+	return cursor
+}
 function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, settings:ToggleListSettings, direction:number){
 	// update line
 	const cursor = editor.getCursor();
@@ -81,9 +102,8 @@ function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, setti
 			const stateIdx = r.offset
 			const result = processOneLine(line, setup, -1, direction)
 			editor.setLine(cursor.line, result.content);
-			const ch = (cursor.ch+result.offset > result.content.length) ? 
-	        result.content.length : cursor.ch+result.offset
-			editor.setCursor(cursor.line, ch);
+			const new_cursor  = setupCursor(cursor, result.offset, result.origin_set, result.new_set)
+			editor.setCursor(new_cursor.line, new_cursor.ch);
 			//register current state for suggestions
 			if(cmd.isPopOver)
 				settings.pop_state.hot = true;
@@ -186,10 +206,25 @@ function roundAdd(a: number, b: number, low: number, high: number): number {
 	return result
 }
 
+function getBlkID(line: string): { blockId: string, lineWithoutBlockId: string } {
+    // Regular expression for matching the block ID
+    const blockIdRegex = /( \^[a-zA-Z0-9-]+)/;
+
+    // Find the block ID
+    const blockIdMatch = line.match(blockIdRegex);
+    const blockId = blockIdMatch ? blockIdMatch[0] : '';
+
+    // Remove the block ID from the line
+    const lineWithoutBlockId = line.replace(blockIdRegex, '').trim();
+
+    return { blockId, lineWithoutBlockId };
+}
+
 export function processOneLine(text: string, setup: Setup, specifyIdx: number, direction: number){
-	const cur_match = getCurrentState(text, setup.sorteds);
+	const { blockId, lineWithoutBlockId } = getBlkID(text);
+	const cur_match = getCurrentState(lineWithoutBlockId, setup.sorteds);
 	if (cur_match.sorted_idx < 0) {
-		return { success: false, content: text, offset: 0 }
+		return { success: false, content: lineWithoutBlockId, offset: 0 }
 	}
 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
 	let next_idx = specifyIdx
@@ -197,53 +232,27 @@ export function processOneLine(text: string, setup: Setup, specifyIdx: number, d
 		next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
-	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
+	let new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
 	let next_txt = next_pair[0]
-	next_txt = applyTimeFormats(next_txt)
 	let cur_txt = cur_pair[0]
+	next_txt = applyTimeFormats(next_txt)
 	cur_txt = applyTimeFormats(cur_txt)
+	new_text = new_text + blockId
 	const offset = next_txt.length - cur_txt.length
-	return { success: true, content: new_text, offset: offset}
+	// length estimation
+	let x0 = applyTimeFormats(cur_pair[0]).length || 0
+	let y0 = applyTimeFormats(cur_pair[1]).length || 0
+	let z = blockId.length || 0
+	// console.log([x0, y0, z])
+	let x1 = applyTimeFormats(next_pair[0]).length || 0
+	let y1 = applyTimeFormats(next_pair[1]).length || 0
+	let A = cur_match.raw.length || 0
+	// console.log([x1, y1, z])
+	return { success: true, content: new_text, offset: offset, 
+		origin_set: {x:x0, a:A, y:y0, z:z}, 
+		new_set: {x:x1, a:A, y:y1, z:z}
+	}
 }
-
-// export function processOneLine2(text: string, setup: Setup, toIdx: number) {
-// 	const cur_match = getCurrentState(text, setup.sorteds);
-// 	if (cur_match.sorted_idx < 0) {
-// 		return { success: false, content: text, offset: 0 }
-// 	}
-// 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
-// 	const next_idx = toIdx
-// 	const cur_pair = separatePreSur(setup.states[cur_idx])
-// 	const next_pair = separatePreSur(setup.states[next_idx])
-// 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
-// 	let next_txt = next_pair[0]
-// 	next_txt = applyTimeFormats(next_txt)
-// 	let cur_txt = cur_pair[0]
-// 	cur_txt = applyTimeFormats(cur_txt)
-// 	const offset = next_txt.length - cur_txt.length
-// 	return { success: true, content: new_text, offset: offset}
-// }
-
-// export function processOneLine(text: string, setup: Setup, direction: number) {
-// 	const cur_match = getCurrentState(text, setup.sorteds);
-// 	console.log("🧐>"+cur_match.raw)
-// 	if (cur_match.sorted_idx < 0) {
-// 		return { success: false, content: text, offset: 0 }
-// 	}
-// 	const cur_idx = setup.states_dict.get(cur_match.sorted_idx) || 0;
-// 	const next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
-// 	const cur_pair = separatePreSur(setup.states[cur_idx])
-// 	const next_pair = separatePreSur(setup.states[next_idx])
-// 	const new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
-// 	let next_txt = next_pair[0]
-// 	next_txt = applyTimeFormats(next_txt)
-// 	let cur_txt = cur_pair[0]
-// 	cur_txt = applyTimeFormats(cur_txt)
-// 	const offset = next_txt.length - cur_txt.length
-// 	// const offset = next_pair[0].length - cur_pair[0].length
-// 	console.log(offset)
-// 	return { success: true, content: new_text, offset: offset}
-// }
 
 export function match_sg(text: string, setup: Setup){
 	const cur_match = getCurrentState(text, setup.sorteds);
@@ -264,8 +273,6 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 		set_cur = true;
 	const head = selection.head.line
 	const anchor = selection.anchor.line
-	// console.log("head=" + selection.head.ch)
-	// console.log("anchor=" + selection.anchor.ch)
 	let start_line = head;
 	let end_line = anchor;
 	if (start_line > end_line) {
@@ -274,7 +281,7 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 	}
 	for (let i = start_line; i <= end_line; i++) {
 		const origin = editor.getLine(i);
-		let r = { success: false, content: origin, offset: 0 }
+		let r = { success: false, content: origin, offset: 0, origin_set:{x:0, y:0, a:0, z:0}, new_set:{x:0, y:0, a:0, z:0}}
 		for (let i = 0; i < bindings.length; i++) {
 			r = processOneLine(origin, sg_list[bindings[i]], -1, direction);
 			if (r.success)
@@ -283,33 +290,18 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 		editor.setLine(i, r.content);
 
 		if (i == cursor.line) {
-			if (cursor.ch < -r.offset)
-				cursor.ch = 0;
-			else if (cursor.ch + r.offset > r.content.length)
-				cursor.ch = r.content.length
-			else
-				cursor.ch = cursor.ch + r.offset;
+			cursor = setupCursor(cursor, r.offset, r.origin_set, r.new_set)
 		}
 		if (i == head) {
-			if (selection.head.ch < -r.offset)
-				selection.head.ch = 0;
-			else if (selection.head.ch + r.offset > r.content.length)
-				selection.head.ch = r.content.length;
-			else
-				selection.head.ch = selection.head.ch + r.offset;
+			const head_cursor = setupCursor(selection.head, r.offset, r.origin_set, r.new_set)
+			selection.head = head_cursor
 		}
 		if (i == anchor) {
-			if (selection.anchor.ch < -r.offset)
-				selection.anchor.ch = 0;
-			else if (selection.anchor.ch + r.offset > r.content.length)
-				selection.anchor.ch = r.content.length
-			else
-				selection.anchor.ch = selection.anchor.ch + r.offset;
+			const anchor_cursor = setupCursor(selection.anchor, r.offset, r.origin_set, r.new_set)
+			selection.anchor = anchor_cursor
 		}
 	}
 	editor.setSelection(selection.anchor, selection.head)
-	// console.log("Nhead=" + selection.head.ch)
-	// console.log("Nanchor=" + selection.anchor.ch)
 	if (set_cur)
 		editor.setCursor(cursor)
 }
