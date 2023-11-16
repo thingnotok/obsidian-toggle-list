@@ -215,7 +215,7 @@ function getBlkID(line: string): { blockId: string, lineWithoutBlockId: string }
     const blockId = blockIdMatch ? blockIdMatch[0] : '';
 
     // Remove the block ID from the line
-    const lineWithoutBlockId = line.replace(blockIdRegex, '').trim();
+    const lineWithoutBlockId = line.replace(blockIdRegex, '');
 
     return { blockId, lineWithoutBlockId };
 }
@@ -240,6 +240,7 @@ export function processOneLine(text: string, setup: Setup, specifyIdx: number, d
 		next_idx = roundAdd(cur_idx, direction, 0, setup.states.length)
 	const cur_pair = separatePreSur(setup.states[cur_idx])
 	const next_pair = separatePreSur(setup.states[next_idx])
+	
 	let new_text = cur_match.idents + ChangeState(cur_match.raw, cur_pair, next_pair)
 	let next_txt = next_pair[0]
 	let cur_txt = cur_pair[0]
