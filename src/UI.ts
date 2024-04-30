@@ -1,7 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import ToggleList from 'src/main';
 import {ToggleListSettings, Setup, Command} from 'src/settings';
-import {genDiagramSVG} from 'src/stateDiagram'
+// import {genDiagramSVG} from 'src/stateDiagram'
 import {renderEmptyLine} from 'src/tlAction'
 
 function genSGSection(tab:ToggleListSettingTab){
@@ -134,7 +134,7 @@ async function genDiagramSection(tab: ToggleListSettingTab){
 	const other = new Setting(tab.containerEl);
 	if(tab.plugin.settings.cmd_list.length > 0){
 		const svg_container = tab.containerEl.createEl('div');
-		svg_container.innerHTML = await genDiagramSVG(tab.plugin.settings);
+		// svg_container.innerHTML = await genDiagramSVG(tab.plugin.settings);
 	}
 	else{
 		tab.containerEl.createEl('h2', { text: 

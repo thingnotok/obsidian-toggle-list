@@ -3,7 +3,7 @@ import { EditorSuggestor } from 'src/suggester';
 import {ToggleListSettings, Setup, Command} from 'src/settings';
 import {ToggleListSettingTab} from 'src/UI'
 import {toggleAction, popAction } from 'src/tlAction';
-import {drawDiagram} from 'src/stateDiagram';
+// import {drawDiagram} from 'src/stateDiagram';
 
 function deleteObsidianCommand(app: App, commandId: string) {
 	// modified from https://github.com/chhoumann/quickadd/blob/master/src/utility.ts
@@ -27,7 +27,7 @@ export default class ToggleList extends Plugin {
 		this.addSettingTab(this.tab);
 		this.registerActions();
 		this.registerEditorSuggest(new EditorSuggestor(this.app, this.settings));
-		drawDiagram("");
+		// drawDiagram("");
 		this.cleanHotkeys();
 	}
 	async loadSettings() {
