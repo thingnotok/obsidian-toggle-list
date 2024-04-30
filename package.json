@@ -26,6 +26,6 @@
 		"default-passive-events": "^2.0.0",
 		"install": "^0.13.0",
 		"npm": "^9.5.1",
-		"state-machine-cat": "^10.1.9"
+		"state-machine-cat": "^10.1.11"
 	}
 }

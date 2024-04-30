@@ -4,11 +4,15 @@ import { ToggleListSettings, EMPTY_TOKEN, Setup } from "./settings";
 
 const timeFormats = [
     { rule: /\\{time:: YYYY-MM-DD hh:mm\\}/, pattern: "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}" },
+	{ rule: /\\{time:: YYYY\/MM\/DD hh:mm\\}/, pattern: "\\d{4}\/\\d{2}\/\\d{2} \\d{2}:\\d{2}" },
     { rule: /\\{time:: YYYY-MM-DD\\}/, pattern: "\\d{4}-\\d{2}-\\d{2}" },
+	{ rule: /\\{time:: YYYY\/MM\/DD\\}/, pattern: "\\d{4}\/\\d{2}\/\\d{2}" },
     { rule: /\\{time:: hh:mm:ss\\}/, pattern: "\\d{2}:\\d{2}:\\d{2}" },
     { rule: /\\{time:: hh:mm\\}/, pattern: "\\d{2}:\\d{2}" },
     { rule: /\\{time:: YYYY-MM\\}/, pattern: "\\d{4}-\\d{2}" },
+	{ rule: /\\{time:: YYYY\/MM\\}/, pattern: "\\d{4}\/\\d{2}" },
     { rule: /\\{time:: MM-DD\\}/, pattern: "\\d{2}-\\d{2}" },
+	{ rule: /\\{time:: MM\/DD\\}/, pattern: "\\d{2}\/\\d{2}" },
     { rule: /\\{time:: YYYY\\}/, pattern: "\\d{4}" },
     { rule: /\\{time:: MM\\}/, pattern: "\\d{2}" },
     { rule: /\\{time:: DD\\}/, pattern: "\\d{2}" },

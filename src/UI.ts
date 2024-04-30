@@ -1,7 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting} from 'obsidian';
 import ToggleList from 'src/main';
 import {ToggleListSettings, Setup, Command} from 'src/settings';
-import {genDiagramSVG} from 'src/stateDiagram'
+import {genDiagramCanvas} from 'src/stateDiagram'
 import {renderEmptyLine} from 'src/tlAction'
 
 function genSGSection(tab:ToggleListSettingTab){
@@ -110,6 +110,16 @@ function genMISCSection(tab:ToggleListSettingTab){
     const other = new Setting(tab.containerEl)
 	// Button: goto hotkey setup page for togglelist
 	other.addButton((cb) => {
+		cb.setButtonText("🔗 Generate State Diagram")
+			.setCta()
+			.onClick(async () => {
+				const stamp = (new Date()).toISOString()
+				const fileName = `TL-StateDiagram-${stamp}.canvas`.replace(/:/g, '-')
+				genDiagramCanvas(tab.plugin.settings, fileName)
+				new Notice(`ToggleList: Generate State Diagram at ./${fileName}`)
+			});
+	});
+	other.addButton((cb) => {
 		cb.setButtonText("🔥 Hotkeys")
 			.setCta()
 			.onClick(() => {
@@ -129,17 +139,6 @@ function genMISCSection(tab:ToggleListSettingTab){
 				plugin.reloadSettingUI()
 			});
 	});
-}
-async function genDiagramSection(tab: ToggleListSettingTab){
-	const other = new Setting(tab.containerEl);
-	if(tab.plugin.settings.cmd_list.length > 0){
-		const svg_container = tab.containerEl.createEl('div');
-		svg_container.innerHTML = await genDiagramSVG(tab.plugin.settings);
-	}
-	else{
-		tab.containerEl.createEl('h2', { text: 
-			"Add at least one State Group and one Command to draw State Diagram"})
-	}
 }
 function genExplanation(tab: ToggleListSettingTab): void {
     const exp = tab.containerEl.createEl('div', {cls:'togglelist_div'})
@@ -183,7 +182,6 @@ export class ToggleListSettingTab extends PluginSettingTab {
         genSGSection(this)
         genCMDSection(this)
         genMISCSection(this)
-        genDiagramSection(this)
         genExplanation(this)
     }
 
