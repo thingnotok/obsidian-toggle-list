@@ -23,9 +23,10 @@ function removeRedundentConnection(scma_text:string){
 
 
 export async function drawDiagram(diagram_description:string, engine:string="fdp"):Promise<string>{
+	let modifiedString = diagram_description.replace(/\["\]/g, "['']");
 	try {
 		const lSVGInAString = smcat.render(
-			diagram_description,
+			modifiedString,
 		  {
 			outputType: "svg",
 			direction: "top-down",
