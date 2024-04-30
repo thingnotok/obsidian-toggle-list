@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-toggle-list",
 	"name": "ToggleList",
-	"version": "1.2.5",
+	"version": "1.2.6",
 	"minAppVersion": "0.15.0",
 	"description": "Toggle the list/checklist with custom states/prefixes and suffixes",
 	"author": "Lite C",

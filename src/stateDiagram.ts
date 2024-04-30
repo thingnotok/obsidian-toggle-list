@@ -3,50 +3,7 @@ import colormap from "colormap";
 import { ToggleListSettings } from "./settings";
 import { renderEmptyLine } from "src/tlAction";
 
-function drawConnection(state_group: Array<string>, color: string): string {
-	let diagram = "";
-	const states = state_group.map(renderEmptyLine);
-	for (let i = 0; i < states.length - 1; i++) {
-		diagram += `"${states[i]}" => "${states[i + 1]}" [color="${color}"];\n`;
-	}
-	diagram += `"${states[states.length - 1]}" -> "${
-		states[0]
-	}" [color="${color}"];\n`;
-	return diagram;
-}
 
-function removeRedundentConnection(scma_text: string) {
-	const lines = scma_text.split("\n");
-	const line_ary = [...new Set(lines)];
-	return line_ary.join("\n");
-}
-
-export async function drawDiagram(
-	diagram_description: string,
-	engine: string = "fdp"
-): Promise<string> {
-	let modifiedString = diagram_description.replace(/\["\]/g, "['']");
-	try {
-		const lSVGInAString = smcat.render(modifiedString, {
-			outputType: "svg",
-			direction: "top-down",
-			engine: engine,
-		});
-		// console.log(lSVGInAString);
-		return lSVGInAString;
-	} catch (pError) {
-		console.error(pError);
-		return "";
-	}
-}
-function modifySVG(svg_text: string) {
-	let result = svg_text;
-	result = result.replace(
-		/<g (id="node)/gs,
-		`<g class="togglelist_theme" $1`
-	);
-	return result;
-}
 function genColorMap(samples: number) {
 	const num = samples < 256 ? 256 : samples;
 	const colors = colormap({
@@ -104,23 +61,7 @@ export async function genDiagramCanvas(
 	fileName: string
 ): Promise<void> {
 	const colors = genColorMap(settings.cmd_list.length);
-	let svg_text = "";
-	let text = ``;
-	// for(let i = 0; i< settings.cmd_list.length-1;i++){
-	// 	const cmd = settings.cmd_list[i]
-	// 	const color_idx = (i/settings.cmd_list.length)*256 | 0
-	// 	text += `"${cmd.name}" [color="${colors[color_idx]}"],`
-	// }
-	// let i = settings.cmd_list.length-1
-	// let cmd = settings.cmd_list[i]
-	// let color_idx = (i/settings.cmd_list.length)*256 | 0
-	// text += `"${cmd.name}" [color="${colors[color_idx]}"];\n`
-	// console.log(text)
-	// svg_text += await drawDiagram(text, 'dot')
-	text = ``;
 	let transitions: string[] = [];
-	// settings.setup_list.forEach((s)=>{transitions.concat(s.states)})
-
 	for (let i = 0; i < settings.cmd_list.length; i++) {
 		const cmd = settings.cmd_list[i];
 		cmd.bindings.forEach((cmdIdx) => {
@@ -131,14 +72,14 @@ export async function genDiagramCanvas(
 	}
 	const statesSet = new Set(transitions);
 	const statesAry = Array.from(statesSet)
-	const nodes = statesAry.map((text, index) => ({
+	const nodes = statesAry.map((state, index) => ({
 		id: `${index}`,
 		x: index*120,
 		y: index * 80,
 		width: 150,
 		height: 40,
 		type: "text",
-		text: text.trim(),
+		text: state.trim(),
 	}));
 	let edgeList:any[] = []
 	for (let i = 0; i < settings.cmd_list.length; i++) {
