@@ -56,8 +56,9 @@ export default class ToggleList extends Plugin {
 		cc = Object.keys(customKeys)
 		for(let i=0;i<cc.length;i++) {
 			const name = cc[i].slice(21,-5)
-			if(!cmds.find(e=>e.name==name))
+			if(cmds.find(e=>e.name==name) !== undefined) {
 				delete customKeys[cc[i]]
+			}
 		}
 		// console.log(customKeys)
 	}
