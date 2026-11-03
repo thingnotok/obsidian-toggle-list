@@ -4,7 +4,7 @@
 import { App, Editor, EditorSuggest, TFile, } from 'obsidian';
 import type { EditorPosition, EditorSuggestContext, EditorSuggestTriggerInfo } from 'obsidian';
 import {ToggleListSettings, Setup, PopState} from 'src/settings'
-import {processOneLine} from 'src/tlAction'
+import {processOneLine, setLineMinimal} from 'src/tlAction'
 
 export type SuggestInfo = {
     suggestionType?: 'match' | 'default' | 'empty';
@@ -93,7 +93,7 @@ export class EditorSuggestor extends EditorSuggest<SuggestInfoWithContext> {
         const r = processOneLine(line, cur_steup, value.insertSkip||0, 1)
         const line_idx = value.insertAt||0
         const cursor = editor.getCursor();
-        editor.setLine(line_idx, r.content);
+        setLineMinimal(editor, line_idx, r.content);
         const ch = (cursor.ch+r.offset > r.content.length) ? 
                 r.content.length : cursor.ch+r.offset
         editor.setCursor(line_idx, ch);

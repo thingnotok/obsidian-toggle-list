@@ -105,7 +105,7 @@ function triggerSuggestionEditorByToggleState(editor: Editor, cmd:Command, setti
 			// settings.cur_setup = setup
 			const stateIdx = r.offset
 			const result = processOneLine(line, setup, -1, direction)
-			editor.setLine(cursor.line, result.content);
+			setLineMinimal(editor, cursor.line, result.content);
 			const new_cursor  = setupCursor(cursor, result.offset, result.origin_set, result.new_set)
 			editor.setCursor(new_cursor.line, new_cursor.ch);
 			//register current state for suggestions
@@ -232,6 +232,42 @@ interface processResult {
     new_set: { x: number; a: number; y: number; z: number };
 }
 
+// If an IME composition is open (Korean, Japanese, Chinese), finish it before
+// editing the document. Editing while composing leaves the line's syntax
+// highlighting stale in Live Preview until the file is reopened. Dropping and
+// restoring focus makes the IME commit the pending text.
+function commitComposition(editor: Editor) {
+	const cm = (editor as any).cm;
+	if (cm && cm.composing) {
+		editor.blur();
+		editor.focus();
+	}
+}
+
+// Replace only the span of the line that actually changed.
+// Rewriting the whole line destroys an active IME composition (Korean,
+// Japanese, Chinese): the composed text gets re-inserted and the prefix is
+// duplicated. Changing just the differing range leaves the composition intact.
+export function setLineMinimal(editor: Editor, lineNo: number, content: string) {
+	commitComposition(editor);
+	const origin = editor.getLine(lineNo);
+	if (origin === content) return;
+	let start = 0;
+	const minLen = Math.min(origin.length, content.length);
+	while (start < minLen && origin[start] === content[start]) start++;
+	let endO = origin.length;
+	let endN = content.length;
+	while (endO > start && endN > start && origin[endO - 1] === content[endN - 1]) {
+		endO--;
+		endN--;
+	}
+	editor.replaceRange(
+		content.slice(start, endN),
+		{ line: lineNo, ch: start },
+		{ line: lineNo, ch: endO }
+	);
+}
+
 export function processOneLine(text: string, setup: Setup, specifyIdx: number, direction: number): processResult{
 	const { blockId, lineWithoutBlockId } = getBlkID(text);
 	const cur_match = getCurrentState(lineWithoutBlockId, setup.sorteds);
@@ -300,7 +336,7 @@ export function toggleAction(editor: Editor, sg_list: Setup[], bindings: number[
 			if (r.success)
 				break;
 		}
-		editor.setLine(i, r.content);
+		setLineMinimal(editor, i, r.content);
 
 		if (i == cursor.line) {
 			cursor = setupCursor(cursor, r.offset, r.origin_set, r.new_set)
